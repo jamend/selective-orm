@@ -25,7 +25,11 @@ class DB {
 		$this->name = $name;
 		$this->pdo = new \PDO("mysql:host={$host};dbname={$name}", $username, $password);
 	}
-	
+
+	/**
+	 * Get the database name
+	 * @return string
+	 */
 	public function getName() {
 		return $this->name;
 	}
@@ -35,7 +39,7 @@ class DB {
 	 * @param string $sql
 	 * @param array $params
 	 * @throws \Exception
-	 * @return PDOStatement
+	 * @return \PDOStatement
 	 */
 	public function query($sql, $params = null) {
 		$stmt = $this->pdo->prepare($sql);
@@ -67,14 +71,6 @@ class DB {
 	 */
 	public function lastInsertID() {
 		return $this->pdo->lastInsertId();
-	}
-	
-	/**
-	 * Get the number of rows in a statement's result
-	 * @param int $stmt
-	 */
-	public function numRows($stmt) {
-		return $stmt->rowCount();
 	}
 	
 	/**
@@ -126,7 +122,7 @@ class DB {
 	
 	/**
 	 * Quote a value for use in SQL statements
-	 * @param $value
+	 * @param mixed $value
 	 */
 	public static function quote($value) {
 		if ($value === null) {

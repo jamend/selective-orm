@@ -9,8 +9,8 @@ namespace jamend\Selective;
 class Table extends RecordSet {
 	private $name;
 	private $db;
-	private $columns;
-	private $keys;
+	private $columns = array();
+	private $keys = array();
 	
 	/**
 	 * Get a table to match the one with the given name in the database
@@ -20,8 +20,6 @@ class Table extends RecordSet {
 	public function __construct($name, $db) {
 		$this->name = $name;
 		$this->db = $db;
-		$this->columns = array();
-		$this->keys = array();
 		
 		// Get the list of columns
 		$columnInfos = $this->getDB()->fetchAll('SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?', array($this->getDB()->getName(), $this->getName()));
@@ -35,6 +33,14 @@ class Table extends RecordSet {
 		}
 		
 		parent::__construct($this);
+	}
+	
+	/**
+	 * Get the table of this 
+	 * @return \jamend\ORM\Table
+	 */
+	public function getTable() {
+		return $this;
 	}
 	
 	/**
@@ -79,7 +85,7 @@ class Table extends RecordSet {
 
 	/**
 	 * Prepare a new Record to be saved in this table
-	 * @return array
+	 * @return Record
 	 */
 	public function create() {
 		$record = new Record($this, false);

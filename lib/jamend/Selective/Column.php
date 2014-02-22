@@ -17,6 +17,11 @@ class Column {
 	public $length;
 	public $options = array();
 	
+	/**
+	 *
+	 * @param array $info row from information_schema.COLUMNS
+	 * @param \jamend\ORM\Table $table
+	 */
 	public function __construct($info, $table) {
 		$this->info = $info;
 		$this->table = $table;
@@ -29,6 +34,7 @@ class Column {
 		$this->isPrimaryKey = $info['COLUMN_KEY'] === 'PRI';
 		$this->allowNull = $info['IS_NULLABLE'] !== 'NO';
 		
+		// parse the column type, ex. varchar(32) or enum('opt1','opt2')
 		if (preg_match('/(([a-z]+)(\(([^\)]+)\)))?/', $info['COLUMN_TYPE'], $matches)) {
 			if (empty($matches[2])) {
 				$this->type = $info['COLUMN_TYPE'];

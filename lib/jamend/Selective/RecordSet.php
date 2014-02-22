@@ -7,8 +7,11 @@ namespace jamend\Selective;
  * @copyright 2014, Jonathan Amend
  */
 class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
-	private $dirty;
-	private $query;
+	private $dirty = true;
+	private $query = array(
+		'where' => array(),
+		'having' => array(),
+	);
 	private $records;
 	
 	/**
@@ -17,9 +20,6 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	 */
 	public function __construct(Table $table) {
 		$this->table = $table;
-		$this->dirty = true;
-		// Set a default where clause
-		$this->query = array('where' => array(1));
 	}
 	
 	/**
@@ -130,7 +130,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	public function isDirty() {
 		return $this->dirty;
 	}
-
+	
 	/**
 	 * Load the records for this record set
 	 */
@@ -155,31 +155,58 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	
 	// Array iteration/traversal
 	
+	/**
+	 * Get the count of records
+	 * @return int
+	 */
 	public function count() {
 		if ($this->isDirty()) $this->load();
 		return count($this->records);
 	}
-	
+
+	/**
+	 * Check if a record exists by its ID
+	 * @param mixed $offset
+	 * @return boolean
+	 */
 	public function offsetExists($offset) {
 		if ($this->isDirty()) $this->load();
 		return isset($this->records[$offset]);
 	}
-	
+
+	/**
+	 * Get a record by its ID
+	 * @param mixed $offset
+	 * @return int
+	 */
 	public function offsetGet($offset) {
 		if ($this->isDirty()) $this->load();
 		return isset($this->records[$offset]) ? $this->records[$offset] : null;
 	}
-	
+
+	/**
+	 * Get a record by ID
+	 * @param mixed $offset
+	 * @param mixed $value
+	 */
 	public function offsetSet($offset, $value) {
 		if ($this->isDirty()) $this->load();
 		return $this->records[$offset] = $value;
 	}
-	
+
+	/**
+	 * Remove a record by ID
+	 * @param mixed $offset
+	 */
 	public function offsetUnset($offset) {
-		unset(self::$_cache[$this->_cacheKey][$offset]);
 		unset($this->records[$offset]);
 	}
 	
+
+	/**
+	 * Get an iterator for the records
+	 * @return \ArrayIterator
+	 */
 	public function getIterator() {
 		if ($this->isDirty()) $this->load();
 		return new \ArrayIterator($this->records);

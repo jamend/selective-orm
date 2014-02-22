@@ -6,26 +6,43 @@ namespace jamend\Selective;
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class DB {
-	private $name;
+abstract class DB {
+	protected $name;
 	/**
 	 * @var \PDO
 	 */
-	private $pdo;
-	private $tables;
+	protected $pdo;
 	
 	/**
-	 * Connect with the specified connection settings
 	 * @param string $name
-	 * @param string $host
-	 * @param string $username
-	 * @param string $password
 	 */
-	public function __construct($name, $host, $username, $password) {
+	public function __construct($name) {
 		$this->name = $name;
-		$this->pdo = new \PDO("mysql:host={$host};dbname={$name}", $username, $password);
 	}
-
+	
+	/**
+	 * Connect to the database
+	 */
+	abstract protected function connect();
+	
+	/**
+	 * Load a DB of the given type and parameters 
+	 * @param string $name
+	 * @param string $type
+	 * @param array $parameters
+	 * @return \jamend\Selective\DB
+	 */
+	public static function loadDB($name, $type, $parameters) {
+		$dbClass = "\jamend\Selective\DB\\{$type}";
+		$db = new $dbClass($name);
+		foreach ($parameters as $name => $value) {
+			$setter = 'set' . ucfirst($name);
+			call_user_func_array(array($db, $setter), array($value));
+		}
+		$db->connect();
+		return $db;
+	}
+	
 	/**
 	 * Get the database name
 	 * @return string
@@ -112,29 +129,13 @@ class DB {
 	 * Get a list of names of the table in the database
 	 * @return array
 	 */
-	public function getTables() {
-		// Cache the list of tables
-		if (!isset($this->tables)) {
-			$this->tables = $this->fetchAll("SHOW TABLES FROM `{$this->name}`");
-		}
-		return $this->tables;
-	}
+	abstract public function getTables();
 	
 	/**
 	 * Quote a value for use in SQL statements
 	 * @param mixed $value
 	 */
-	public static function quote($value) {
-		if ($value === null) {
-			return 'null';
-		} else if (is_bool($value)) {
-			return $value ? 1 : 0;
-		} else if (is_numeric($value) && $value === strval(intval($value))) {
-			return intval($value);
-		} else {
-			return '"' . addslashes($value) . '"';
-		}
-	}
+	abstract public function quote($value);
 	
 	/**
 	 * Get a Table object for the given name

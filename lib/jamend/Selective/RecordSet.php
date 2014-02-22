@@ -2,7 +2,8 @@
 namespace jamend\Selective;
 
 /**
- * Represents the records in a table in the database, that can be used like an array
+ * Represents the records in a table in the database, that can be used like an
+ * array
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */

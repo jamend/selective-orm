@@ -1,10 +1,10 @@
 <?php
-namespace Selective\ORM;
+namespace jamend\Selective;
 
 /**
  * Represents a record in a table
  * @author Jonathan Amend <j.amend@gmail.com>
- * @copyright 2013, Jonathan Amend
+ * @copyright 2014, Jonathan Amend
  */
 class Record {
 	// Keep any special properties in __meta so that any instances look more like plain old objects

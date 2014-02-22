@@ -1,10 +1,10 @@
 <?php
-namespace Selective\ORM;
+namespace jamend\Selective;
 
 /**
  * Represents the records in a table in the database, that can be used like an array
  * @author Jonathan Amend <j.amend@gmail.com>
- * @copyright 2013, Jonathan Amend
+ * @copyright 2014, Jonathan Amend
  */
 class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	private $dirty;
@@ -24,7 +24,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	
 	/**
 	 * Get the table of this 
-	 * @return \Selective\ORM\Table
+	 * @return \jamend\Selective\Table
 	 */
 	public function getTable() {
 		return $this->table;
@@ -32,7 +32,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	
 	/**
 	 * Get a clone of this record set, ready for more filters/criteria
-	 * @return \Selective\ORM\RecordSet
+	 * @return \jamend\Selective\RecordSet
 	 */
 	public function openRecordSet() {
 		return clone $this;
@@ -45,14 +45,14 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	 */
 	public function __get($id) {
 		$result = $this->getTable()->getDB()->query($this->buildQuery($id));
-		$record = $this->getTable()->getDB()->fetchObject($result, 'Selective\ORM\Record', array($this->getTable()));
+		$record = $this->getTable()->getDB()->fetchObject($result, 'jamend\Selective\Record', array($this->getTable()));
 		return $record;
 	}
 	
 	/**
 	 * Return a new record set filtered by the given where clause
 	 * @param string $criteria where clause
-	 * @return \Selective\ORM\RecordSet
+	 * @return \jamend\Selective\RecordSet
 	 */
 	public function where($criteria) {
 		$recordSet = $this->openRecordSet();
@@ -98,7 +98,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	private function load() {
 		$result = $this->getTable()->getDB()->query($this->buildQuery());
 		$this->records = array();
-		while ($record = $this->getTable()->getDB()->fetchObject($result, 'Selective\ORM\Record', array($this->getTable()))) {
+		while ($record = $this->getTable()->getDB()->fetchObject($result, 'jamend\Selective\Record', array($this->getTable()))) {
 			$this->records[$record->getID()] = $record;
 		}
 		$this->dirty == false;

@@ -1,10 +1,10 @@
 <?php
-namespace Selective\ORM;
+namespace jamend\Selective;
 
 /**
  * Wrap lower-level database access functions like connecting, queries, and fetching
  * @author Jonathan Amend <j.amend@gmail.com>
- * @copyright 2013, Jonathan Amend
+ * @copyright 2014, Jonathan Amend
  */
 class DB {
 	private $name;
@@ -144,7 +144,7 @@ class DB {
 	/**
 	 * Get a Table object for the given name
 	 * @param String $name
-	 * @return \Selective\ORM\Table
+	 * @return \jamend\Selective\Table
 	 */
 	public function __get($name) {
 		// Cache the table

@@ -1,10 +1,10 @@
 <?php
-namespace Selective\ORM;
+namespace jamend\Selective;
 
 /**
  * Represents a table in the database
  * @author Jonathan Amend <j.amend@gmail.com>
- * @copyright 2013, Jonathan Amend
+ * @copyright 2014, Jonathan Amend
  */
 class Table extends RecordSet {
 	private $name;

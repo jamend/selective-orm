@@ -33,34 +33,32 @@ class DB {
 	/**
 	 * Run a query and return the resulting statement
 	 * @param string $sql
+	 * @param array $params
 	 * @throws \Exception
 	 * @return PDOStatement
 	 */
-	public function query($sql) {
-		$stmt = $this->pdo->query($sql);
-		// Check if there was an error
-		if ($stmt === false) {
-			$errorInfo = $this->pdo->errorInfo();
+	public function query($sql, $params = null) {
+		$stmt = $this->pdo->prepare($sql);
+		
+		// Execute and check if there was an error
+		if ($stmt->execute($params)) {
+			return $stmt;
+		} else {
+			$errorInfo = $stmt->errorInfo();
 			throw new \Exception('Query failed: "' . $sql . '" (' . $errorInfo[1] . ': ' . $errorInfo[2] . ')');
 		}
-		return $stmt;
 	}
 	
 	/**
 	 * Execute an update query and return the number of affected rows
 	 * @param string $sql
+	 * @param array $params
 	 * @throws \Exception
 	 * @return number of affected rows
 	 */
-	public function executeUpdate($sql) {
-		$affectedRows = $this->pdo->exec($sql);
-		// Check if there was an error
-		if ($affectedRows === false) {
-			$errorInfo = $this->pdo->errorInfo();
-			throw new \Exception('Query failed: "' . $sql . '" (' . $errorInfo[1] . ': ' . $errorInfo[2] . ')');
-		} else {
-			return $affectedRows;
-		}
+	public function executeUpdate($sql, $params = null) {
+		$stmt = $this->query($sql, $params);
+		return $stmt->rowCount();
 	}
 	
 	/**
@@ -82,10 +80,11 @@ class DB {
 	/**
 	 * Get an array of all rows of a statement as associative arrays
 	 * @param string $sql
+	 * @param array $params
 	 * @return array
 	 */
-	public function fetchAll($sql) {
-		$stmt = $this->query($sql);
+	public function fetchAll($sql, $params = null) {
+		$stmt = $this->query($sql, $params);
 		$rows = array();
 		if ($stmt) {
 			while (($row = $stmt->fetch(\PDO::FETCH_ASSOC)) !== false) {

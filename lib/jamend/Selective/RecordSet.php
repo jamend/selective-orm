@@ -44,7 +44,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	 * @return Record
 	 */
 	public function __get($id) {
-		$result = $this->getTable()->getDB()->query($this->buildQuery($id));
+		$result = $this->query($id);
 		$record = $this->getTable()->getDB()->fetchObject($result, 'jamend\Selective\Record', array($this->getTable()));
 		return $record;
 	}
@@ -52,11 +52,28 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	/**
 	 * Return a new record set filtered by the given where clause
 	 * @param string $criteria where clause
+	 * @param mixed... $params
 	 * @return \jamend\Selective\RecordSet
 	 */
 	public function where($criteria) {
+		$params = func_get_args();
+		$criteria = array_shift($params);
 		$recordSet = $this->openRecordSet();
-		$recordSet->query['where'][] = $criteria;
+		$recordSet->query['where'][] = array($criteria, $params);
+		return $recordSet;
+	}
+	
+	/**
+	 * Return a new record set filtered by the given having clause
+	 * @param string $criteria where clause
+	 * @param mixed... $params
+	 * @return \jamend\Selective\RecordSet
+	 */
+	public function having($criteria) {
+		$params = func_get_args();
+		$criteria = array_shift($params);
+		$recordSet = $this->openRecordSet();
+		$recordSet->query['having'][] = array($criteria, $params);
 		return $recordSet;
 	}
 	
@@ -65,15 +82,35 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	 * @param string $id Build the query to get the record with the ID from the table
 	 * @return string SQL query
 	 */
-	private function buildQuery($id = NULL) {
-		$where = '(' . implode(') AND (', $this->query['where']) . ')';
-		if ($id !== NULL) {
+	private function query($id = null) {
+		$params = array();
+		
+		// build where clause
+		$where = '';
+		foreach ($this->query['where'] as $whereClause) {
+			$where .= ' AND (' . $whereClause[0] . ')';
+			if (!empty($whereClause[1])) $params = array_merge($params, $whereClause[1]);
+		}
+		
+		if ($id !== null) {
 			// Build a where clause to find a record by its ID
 			$idParts = explode(',', $id);
 			for ($i = 0; $i < count($idParts); $i++) {
-				$where .= ' AND ' . $this->getTable()->getFullName() . '.`' . $this->getTable()->getKeys()[$i] . '` = ' . DB::quote($idParts[$i]);
+				$params[] = $idParts[$i];
+				$where .= ' AND ' . $this->getTable()->getFullName() . '.`' . $this->getTable()->getKeys()[$i] . '` = ?';
 			}
 		}
+		
+		if ($where) $where = ' WHERE ' . substr($where, 5); // replace first AND with WHERE
+		
+		// build having clause
+		$having = '';
+		foreach ($this->query['having'] as $havingClause) {
+			$having .= ' AND (' . $havingClause[0] . ')';
+			if (!empty($havingClause[1])) $params = array_merge($params, $havingClause[1]);
+		}
+		if ($having) $having = ' HAVING ' . substr($having, 5); // replace first AND with HAVING
+		
 		$columns = '';
 		// Add each column to the query
 		foreach ($this->getTable()->getColumns() as $columnName => $column) {
@@ -81,7 +118,9 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 			// Force columns of type set to return the numeric value instead of the string that it maps to
 			if ($column->type == 'set') $columns .= ' + 0 AS `' . $columnName . '`';
 		}
-		return 'SELECT ' . substr($columns, 2) . ' FROM ' . $this->getTable()->getFullName() . ' WHERE ' . $where;
+		
+		$sql = 'SELECT ' . substr($columns, 2) . ' FROM ' . $this->getTable()->getFullName() . $where . $having;
+		return $this->getTable()->getDB()->query($sql, $params);
 	}
 	
 	/**
@@ -96,7 +135,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	 * Load the records for this record set
 	 */
 	private function load() {
-		$result = $this->getTable()->getDB()->query($this->buildQuery());
+		$result = $this->query();
 		$this->records = array();
 		while ($record = $this->getTable()->getDB()->fetchObject($result, 'jamend\Selective\Record', array($this->getTable()))) {
 			$this->records[$record->getID()] = $record;

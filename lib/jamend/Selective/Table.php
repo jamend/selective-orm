@@ -24,7 +24,7 @@ class Table extends RecordSet {
 		$this->keys = array();
 		
 		// Get the list of columns
-		$columnInfos = $this->getDB()->fetchAll('SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ' . DB::quote($this->getDB()->getName()) . ' AND TABLE_NAME = ' . DB::quote($this->getName()));
+		$columnInfos = $this->getDB()->fetchAll('SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?', array($this->getDB()->getName(), $this->getName()));
 		
 		// Get the list of primary keys
 		foreach ($columnInfos as $info) {

@@ -66,17 +66,22 @@ class Record {
 	 * @return boolean True if a change was made to the database  
 	 */
 	public function save() {
+		$params = array();
+		
 		if ($this->exists()) {
 			// Build an update query for an existing record
-			$keyCriteria = '';
-			foreach ($this->getTable()->getKeys() as $columnName) {
-				$keyCriteria .= ' AND ' . $this->getTable()->getFullName() . '.`' . $columnName . '` = ' . DB::quote($this->{$columnName});
-			}
-			
 			$update = '';
 			foreach ($this->getTable()->getColumns() as $columnName => $column) {
-				$update .= ', ' . $this->getTable()->getFullName() . '.`' . $columnName . '` = ' . DB::quote($this->{$columnName});
+				$update .= ', ' . $this->getTable()->getFullName() . '.`' . $columnName . '` = ?';
+				$params[] = $this->{$columnName};
 			}
+			
+			$keyCriteria = '';
+			foreach ($this->getTable()->getKeys() as $columnName) {
+				$keyCriteria .= ' AND ' . $this->getTable()->getFullName() . '.`' . $columnName . '` = ?';
+				$params[] = $this->{$columnName};
+			}
+			
 			$query = 'UPDATE ' . $this->getTable()->getFullName() . ' SET ' . substr($update, 2) . ' WHERE ' . substr($keyCriteria, 5);
 		} else {
 			// Build an insert query for a new record
@@ -84,12 +89,13 @@ class Record {
 			$values = '';
 			foreach ($this->getTable()->getColumns() as $columnName => $column) {
 				$fields .= ', `' . $columnName . '`';
-				$values .= ', ' . DB::quote($this->{$columnName});
+				$values .= ', ?';
+				$params[] = $this->{$columnName};
 			}
 			$query = 'INSERT INTO ' . $this->getTable()->getFullName() . ' (' . substr($fields, 2) . ') VALUES (' . substr($values, 2) . ')';
 		}
 		
-		$affectedRows = $this->__meta['exists'] = $this->getTable()->getDB()->executeUpdate($query);
+		$affectedRows = $this->__meta['exists'] = $this->getTable()->getDB()->executeUpdate($query, $params);
 		$this->__meta['exists'] = $affectedRows !== false;
 		return $this->__meta['exists'];
 	}
@@ -99,14 +105,16 @@ class Record {
 	 * @return boolean True if the record was deleted
 	 */
 	public function delete() {
+		$params = array();
 		$keyCriteria = '';
 		
 		// Build a query to delete this record based on its primary key value(s)
 		foreach ($this->getTable()->getKeys() as $columnName) {
-			$keyCriteria .= ' AND ' . $this->getTable()->getFullName() . '.`' . $columnName . '` = ' . DB::quote($this->{$columnName});
+			$params[] = $this->{$columnName};
+			$keyCriteria .= ' AND ' . $this->getTable()->getFullName() . '.`' . $columnName . '` = ?';
 		}
 		
-		$affectedRows = $this->getTable()->getDB()->executeUpdate('DELETE FROM ' . $this->getTable()->getFullName() . ' WHERE ' . substr($keyCriteria, 5));
+		$affectedRows = $this->getTable()->getDB()->executeUpdate('DELETE FROM ' . $this->getTable()->getFullName() . ' WHERE ' . substr($keyCriteria, 5), $params);
 		$this->__meta['exists'] = $affectedRows === false && $this->__meta['exists'];
 		return !$this->__meta['exists'];
 	}

@@ -28,7 +28,7 @@ class Table extends RecordSet {
 		
 		// Get the list of primary keys
 		foreach ($columnInfos as $info) {
-			$this->columns[$info['COLUMN_NAME']] = $info;
+			$this->columns[$info['COLUMN_NAME']] = new Column($info, $this);
 			if ($info['COLUMN_KEY'] == 'PRI') {
 				$this->keys[] = $info['COLUMN_NAME'];
 			}
@@ -84,11 +84,7 @@ class Table extends RecordSet {
 	public function create() {
 		$record = new Record($this, false);
 		foreach ($this->getColumns() as $columnName => $column) {
-			if ($column['COLUMN_DEFAULT'] == '') {
-				$record->{$columnName} = NULL;
-			} else {
-				$record->{$columnName} = $column['COLUMN_DEFAULT'];
-			}
+			$record->{$columnName} = $column->default;
 		}
 		return $record;
 	}

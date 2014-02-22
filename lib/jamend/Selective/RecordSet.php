@@ -79,7 +79,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 		foreach ($this->getTable()->getColumns() as $columnName => $column) {
 			$columns .= ', ' . $this->getTable()->getFullName() . '.`' . $columnName . '`';
 			// Force columns of type set to return the numeric value instead of the string that it maps to
-			if ($column['DATA_TYPE'] == 'set') $columns .= ' + 0 AS `' . $columnName . '`';
+			if ($column->type == 'set') $columns .= ' + 0 AS `' . $columnName . '`';
 		}
 		return 'SELECT ' . substr($columns, 2) . ' FROM ' . $this->getTable()->getFullName() . ' WHERE ' . $where;
 	}

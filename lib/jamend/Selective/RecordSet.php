@@ -110,8 +110,8 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	 */
 	public function first() {
 		if ($this->isDirty()) $this->load();
-		reset($this->__records);
-		return current($this->__records);
+		reset($this->records);
+		return current($this->records);
 	}
 	
 	// Array iteration/traversal
@@ -128,7 +128,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 	
 	public function offsetGet($offset) {
 		if ($this->isDirty()) $this->load();
-		return isset($this->records[$offset]) ? $this->__records[$offset] : null;
+		return isset($this->records[$offset]) ? $this->records[$offset] : null;
 	}
 	
 	public function offsetSet($offset, $value) {

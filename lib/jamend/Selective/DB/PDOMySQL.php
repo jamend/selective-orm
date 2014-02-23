@@ -1,5 +1,5 @@
 <?php
-namespace jamend\ORM\DB;
+namespace jamend\Selective\DB;
 
 /**
  * Wrap lower-level database access functions like connecting, queries, and

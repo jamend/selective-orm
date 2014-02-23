@@ -26,9 +26,10 @@ class Table extends RecordSet {
 		
 		// Get the list of primary keys
 		foreach ($columnInfos as $info) {
-			$this->columns[$info['COLUMN_NAME']] = new Column($info, $this);
-			if ($info['COLUMN_KEY'] == 'PRI') {
-				$this->keys[] = $info['COLUMN_NAME'];
+			$column = new Column($info, $this);
+			$this->columns[$column->name] = $column;
+			if ($column->isPrimaryKey) {
+				$this->keys[] = $column->name;
 			}
 		}
 		

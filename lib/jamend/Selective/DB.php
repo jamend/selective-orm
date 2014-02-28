@@ -27,13 +27,19 @@ abstract class DB {
 	
 	/**
 	 * Load a DB of the given type and parameters 
-	 * @param string $name
-	 * @param string $type
-	 * @param array $parameters
+	 * @param string $name Database alias
+	 * @param string $type DB class name
+	 * @param array $parameters DB class-specific parameters
 	 * @return \jamend\Selective\DB
 	 */
 	public static function loadDB($name, $type, $parameters) {
-		$dbClass = "\jamend\Selective\DB\\{$type}";
+		if ($type{0} === '\\') {
+			// db class has absolute namespace
+			$dbClass = $type;
+		} else {
+			// db class is relative to this namespace
+			$dbClass = "\jamend\Selective\DB\\{$type}";
+		}
 		$db = new $dbClass($name);
 		foreach ($parameters as $name => $value) {
 			$setter = 'set' . ucfirst($name);

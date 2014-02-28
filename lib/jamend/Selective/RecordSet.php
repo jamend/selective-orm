@@ -164,7 +164,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 		if ($this->isDirty()) $this->load();
 		return count($this->records);
 	}
-
+	
 	/**
 	 * Check if a record exists by its ID
 	 * @param mixed $offset
@@ -174,7 +174,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 		if ($this->isDirty()) $this->load();
 		return isset($this->records[$offset]);
 	}
-
+	
 	/**
 	 * Get a record by its ID
 	 * @param mixed $offset
@@ -184,7 +184,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 		if ($this->isDirty()) $this->load();
 		return isset($this->records[$offset]) ? $this->records[$offset] : null;
 	}
-
+	
 	/**
 	 * Get a record by ID
 	 * @param mixed $offset
@@ -194,7 +194,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 		if ($this->isDirty()) $this->load();
 		return $this->records[$offset] = $value;
 	}
-
+	
 	/**
 	 * Remove a record by ID
 	 * @param mixed $offset
@@ -203,7 +203,6 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 		unset($this->records[$offset]);
 	}
 	
-
 	/**
 	 * Get an iterator for the records
 	 * @return \ArrayIterator

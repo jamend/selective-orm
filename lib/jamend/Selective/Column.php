@@ -18,7 +18,7 @@ class Column {
 	public $options = array();
 	
 	/**
-	 *
+	 * FIXME MySQL-specific; move to DB implementation
 	 * @param array $info row from information_schema.COLUMNS
 	 * @param \jamend\ORM\Table $table
 	 */
@@ -54,5 +54,37 @@ class Column {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Get the table of this column
+	 * @return Table
+	 */
+	public function getTable() {
+		return $this->table;
+	}
+	
+	/**
+	 * Get the column name
+	 * @return string
+	 */
+	public function getName() {
+		return $this->name;
+	}
+	
+	/**
+	 * Get the full quoted identifier including database/table name
+	 * @return string
+	 */
+	public function getFullIdentifier() {
+		return $this->getTable()->getDB()->getColumnFullIdentifier($this);
+	}
+	
+	/**
+	 * Get the quoted identifier for the column name
+	 * @return string
+	 */
+	public function getBaseIdentifier() {
+		return $this->getTable()->getDB()->getColumnBaseIdentifier($this);
 	}
 }

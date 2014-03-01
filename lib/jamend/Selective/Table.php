@@ -22,6 +22,7 @@ class Table extends RecordSet {
 		$this->db = $db;
 		
 		// Get the list of columns
+		// FIXME MySQL-specific; move to DB implementation
 		$columnInfos = $this->getDB()->fetchAll('SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?', array($this->getDB()->getName(), $this->getName()));
 		
 		// Get the list of primary keys
@@ -45,11 +46,19 @@ class Table extends RecordSet {
 	}
 	
 	/**
-	 * Get the fully-qualified table name
+	 * Get the full quoted identifier including database name
 	 * @return string
 	 */
-	public function getFullName() {
-		return "`{$this->getDB()->getName()}`.`{$this->getName()}`";
+	public function getFullIdentifier() {
+		return $this->getDB()->getTableFullIdentifier($this);
+	}
+	
+	/**
+	 * Get the quoted identifier for the table name
+	 * @return string
+	 */
+	public function getBaseIdentifier() {
+		return $this->getDB()->getTableBaseIdentifier($this);
 	}
 	
 	/**

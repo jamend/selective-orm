@@ -97,8 +97,10 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 			// Build a where clause to find a record by its ID
 			$idParts = explode(',', $id);
 			for ($i = 0; $i < count($idParts); $i++) {
+				$columnName = $this->getTable()->getKeys()[$i];
+				$column = $this->getTable()->getColumns()[$columnName];
+				$where .= " AND {$column->getBaseIdentifier()} = ?";
 				$params[] = $idParts[$i];
-				$where .= ' AND ' . $this->getTable()->getFullName() . '.`' . $this->getTable()->getKeys()[$i] . '` = ?';
 			}
 		}
 		
@@ -115,12 +117,13 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 		$columns = '';
 		// Add each column to the query
 		foreach ($this->getTable()->getColumns() as $columnName => $column) {
-			$columns .= ', ' . $this->getTable()->getFullName() . '.`' . $columnName . '`';
+			$columns .= ", {$column->getBaseIdentifier()}";
 			// Force columns of type set to return the numeric value instead of the string that it maps to
-			if ($column->type == 'set') $columns .= ' + 0 AS `' . $columnName . '`';
+			if ($column->type == 'set') $columns .= " + 0 AS {$column->getBaseIdentifier()}";
 		}
+		$columns = substr($columns, 2); // remove first ', '
 		
-		$sql = 'SELECT ' . substr($columns, 2) . ' FROM ' . $this->getTable()->getFullName() . $where . $having;
+		$sql = "SELECT {$columns} FROM {$this->getTable()->getFullIdentifier()}{$where}{$having}";
 		return $this->getTable()->getDB()->query($sql, $params);
 	}
 	

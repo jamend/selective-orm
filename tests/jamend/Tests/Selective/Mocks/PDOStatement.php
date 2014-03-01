@@ -126,7 +126,7 @@ class PDOStatement extends \PDOStatement {
 				'COLUMN_COMMENT' => '' 
 			),
 		),
-		'SELECT `test`.`Book`.`idBook`, `test`.`Book`.`title`, `test`.`Book`.`idAuthor`, `test`.`Book`.`isbn`, `test`.`Book`.`description` FROM `test`.`Book` WHERE `test`.`Book`.`idBook` = ?' => array(
+		'SELECT `idBook`, `title`, `idAuthor`, `isbn`, `description` FROM `test`.`Book` WHERE `idBook` = ?' => array(
 			0 =>
 			array (
 				'idBook' => '1',

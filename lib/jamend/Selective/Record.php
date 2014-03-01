@@ -61,60 +61,92 @@ class Record {
 	}
 	
 	/**
+	 * Get the WHERE clause to identify this record by its primary key values
+	 * @param &array $params array will to which prepared statement bind
+	 * 	parameters will be added
+	 */
+	private function getIdentifyingWhereClause(&$params) {
+		$keyCriteria = '';
+		foreach ($this->getTable()->getKeys() as $columnName) {
+			$column = $this->getTable()->getColumns()[$columnName];
+			$keyCriteria .= " AND {$column->getBaseIdentifier()} = ?";
+			$params[] = $this->{$columnName};
+		}
+		return substr($keyCriteria, 5); // remove first ' AND '
+	}
+	
+	/**
 	 * Saves this record in the table; This will result in an INSERT or UPDATE
 	 * query based of if this record already exists
 	 * @return boolean True if a change was made to the database  
 	 */
 	public function save() {
-		$params = array();
-		
 		if ($this->exists()) {
-			// Build an update query for an existing record
-			$update = '';
-			foreach ($this->getTable()->getColumns() as $columnName => $column) {
-				$update .= ', ' . $this->getTable()->getFullName() . '.`' . $columnName . '` = ?';
-				$params[] = $this->{$columnName};
-			}
-			
-			$keyCriteria = '';
-			foreach ($this->getTable()->getKeys() as $columnName) {
-				$keyCriteria .= ' AND ' . $this->getTable()->getFullName() . '.`' . $columnName . '` = ?';
-				$params[] = $this->{$columnName};
-			}
-			
-			$query = 'UPDATE ' . $this->getTable()->getFullName() . ' SET ' . substr($update, 2) . ' WHERE ' . substr($keyCriteria, 5);
+			$affectedRows = $this->update();
 		} else {
-			// Build an insert query for a new record
-			$fields = '';
-			$values = '';
-			foreach ($this->getTable()->getColumns() as $columnName => $column) {
-				$fields .= ', `' . $columnName . '`';
-				$values .= ', ?';
-				$params[] = $this->{$columnName};
-			}
-			$query = 'INSERT INTO ' . $this->getTable()->getFullName() . ' (' . substr($fields, 2) . ') VALUES (' . substr($values, 2) . ')';
+			$affectedRows = $this->insert();
 		}
 		
-		$affectedRows = $this->__meta['exists'] = $this->getTable()->getDB()->executeUpdate($query, $params);
 		$this->__meta['exists'] = $affectedRows !== false;
 		return $this->__meta['exists'];
+	}
+
+	/**
+	 * Update the existing record in the database
+	 * @return int number of affected rows, or false
+	 */
+	private function update() {
+		$params = array();
+		
+		// Build an update query for an existing record
+		$update = '';
+		foreach ($this->getTable()->getColumns() as $columnName => $column) {
+			$update .= ", {$column->getBaseIdentifier()} = ?";
+			$params[] = $this->{$columnName};
+		}
+		$update = substr($update, 2); // remove first ', '
+		
+		$keyCriteria = $this->getIdentifyingWhereClause($params);
+		
+		return $this->getTable()->getDB()->executeUpdate(
+			"UPDATE {$this->getTable()->getFullIdentifier()} SET {$update} WHERE {$keyCriteria}",
+			$params
+		);
+	}
+	
+	/**
+	 * Insert the record into the database
+	 * @return int number of affected rows, or false
+	 */
+	private function insert() {
+		$params = array();
+		
+		// Build an insert query for a new record
+		$fields = '';
+		$values = '';
+		foreach ($this->getTable()->getColumns() as $columnName => $column) {
+			$fields .= ", {$column->getBaseIdentifier()}";
+			$values .= ', ?';
+			$params[] = $this->{$columnName};
+		}
+		$fields = substr($fields, 2); // remove first ', '
+		$values = substr($values, 2); // remove first ', '
+		
+		return $this->getTable()->getDB()->executeUpdate(
+			"INSERT INTO {$this->getTable()->getFullIdentifier()} ({$fields}) VALUES ({$values})",
+			$params
+		);
 	}
 	
 	/**
 	 * Delete this record from the database
-	 * @return boolean True if the record was deleted
+	 * @return boolean True if the record is deleted
 	 */
 	public function delete() {
 		$params = array();
-		$keyCriteria = '';
+		$keyCriteria = $this->getIdentifyingWhereClause($params);
 		
-		// Build a query to delete this record based on its primary key value(s)
-		foreach ($this->getTable()->getKeys() as $columnName) {
-			$params[] = $this->{$columnName};
-			$keyCriteria .= ' AND ' . $this->getTable()->getFullName() . '.`' . $columnName . '` = ?';
-		}
-		
-		$affectedRows = $this->getTable()->getDB()->executeUpdate('DELETE FROM ' . $this->getTable()->getFullName() . ' WHERE ' . substr($keyCriteria, 5), $params);
+		$affectedRows = $this->getTable()->getDB()->executeUpdate("DELETE FROM {$this->getTable()->getFullIdentifier()} WHERE {$keyCriteria}", $params);
 		$this->__meta['exists'] = $affectedRows === false && $this->__meta['exists'];
 		return !$this->__meta['exists'];
 	}

@@ -7,18 +7,10 @@ namespace jamend\Selective;
  * @copyright 2014, Jonathan Amend
  */
 abstract class DB {
-	protected $name;
 	/**
 	 * @var \PDO
 	 */
 	protected $pdo;
-	
-	/**
-	 * @param string $name
-	 */
-	public function __construct($name) {
-		$this->name = $name;
-	}
 	
 	/**
 	 * Connect to the database
@@ -26,13 +18,46 @@ abstract class DB {
 	abstract protected function connect();
 	
 	/**
+	 * Get the database name
+	 * @return string
+	 */
+	abstract public function getName();
+	
+	/**
+	 * Get the full quoted identifier including database name
+	 * @param Table $table
+	 * @return string
+	 */
+	abstract public function getTableFullIdentifier(Table $table);
+	
+	/**
+	 * Get the quoted identifier for the table name
+	 * @param Table $table
+	 * @return string
+	 */
+	abstract public function getTableBaseIdentifier(Table $table);
+	
+	/**
+	 * Get the full quoted identifier including database/table name
+	 * @param Column $column
+	 * @return string
+	 */
+	abstract public function getColumnFullIdentifier(Column $column);
+	
+	/**
+	 * Get the quoted identifier for the column name
+	 * @param Column $column
+	 * @return string
+	 */
+	abstract public function getColumnBaseIdentifier(Column $column);
+	
+	/**
 	 * Load a DB of the given type and parameters 
-	 * @param string $name Database alias
 	 * @param string $type DB class name
 	 * @param array $parameters DB class-specific parameters
 	 * @return \jamend\Selective\DB
 	 */
-	public static function loadDB($name, $type, $parameters) {
+	public static function loadDB($type, $parameters) {
 		if ($type{0} === '\\') {
 			// db class has absolute namespace
 			$dbClass = $type;
@@ -40,21 +65,13 @@ abstract class DB {
 			// db class is relative to this namespace
 			$dbClass = "\jamend\Selective\DB\\{$type}";
 		}
-		$db = new $dbClass($name);
+		$db = new $dbClass();
 		foreach ($parameters as $name => $value) {
 			$setter = 'set' . ucfirst($name);
 			call_user_func_array(array($db, $setter), array($value));
 		}
 		$db->connect();
 		return $db;
-	}
-	
-	/**
-	 * Get the database name
-	 * @return string
-	 */
-	public function getName() {
-		return $this->name;
 	}
 	
 	/**

@@ -15,12 +15,6 @@ class TableTest extends TestCase {
 		$this->assertEquals($table->getName(), 'Book');
 	}
 	
-	public function testGetFullName() {
-		$db = $this->getDB();
-		$table = $db->{'Book'};
-		$this->assertEquals($table->getFullName(), '`test`.`Book`');
-	}
-	
 	public function testGetKeys() {
 		$db = $this->getDB();
 		$table = $db->{'Book'};

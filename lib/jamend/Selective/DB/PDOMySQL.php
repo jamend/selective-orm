@@ -38,13 +38,75 @@ class PDOMySQL extends \jamend\Selective\DB {
 	}
 	
 	/**
+	 * Get the database name
+	 * @return string
+	 */
+	public function getName() {
+		return $this->dbname;
+	}
+	
+	/**
+	 * Get the full quoted identifier including database name
+	 * @param Table $table
+	 * @return string
+	 */
+	public function getTableFullIdentifier(\jamend\Selective\Table $table) {
+		return "`{$this->getName()}`.{$this->getTableBaseIdentifier($table)}";
+	}
+	
+	/**
+	 * Get the quoted identifier for the table name
+	 * @param Table $table
+	 * @return string
+	 */
+	public function getTableBaseIdentifier(\jamend\Selective\Table $table) {
+		return "`{$table->getName()}`";
+	}
+	
+	/**
+	 * Get the full quoted identifier including database/table name
+	 * @param Column $column
+	 * @return string
+	 */
+	public function getColumnFullIdentifier(\jamend\Selective\Column $column) {
+		return "`{$this->getTableFullIdentifier($column->getTable())}`.{$this->getColumnBaseIdentifier($column)}";
+	}
+	
+	/**
+	 * Get the quoted identifier for the column name
+	 * @param Column $column
+	 * @return string
+	 */
+	public function getColumnBaseIdentifier(\jamend\Selective\Column $column) {
+		return "`{$column->getName()}`";
+	}
+	
+	/**
+	 * Get quoted identifier for a table
+	 * @param Table $table
+	 * @return string
+	 */
+	public function getTableIdentifier(Table $table) {
+		return "`{$this->getDB()->setDbname()}`.`{$table->getName()}`";
+	}
+	
+	/**
+	 * Get quoted identifier for a column
+	 * @param Column $column
+	 * @return string
+	 */
+	public function getColumnIdentifier(Column $column) {
+		
+	}
+	
+	/**
 	 * Get a list of names of the table in the database
 	 * @return array
 	 */
 	public function getTables() {
 		// Cache the list of tables
 		if (!isset($this->tables)) {
-			$this->tables = $this->fetchAll("SHOW TABLES FROM `{$this->name}`");
+			$this->tables = $this->fetchAll("SHOW TABLES FROM `{$this->dbname}`");
 		}
 		return $this->tables;
 	}

@@ -82,24 +82,6 @@ class PDOMySQL extends \jamend\Selective\DB {
 	}
 	
 	/**
-	 * Get quoted identifier for a table
-	 * @param Table $table
-	 * @return string
-	 */
-	public function getTableIdentifier(Table $table) {
-		return "`{$this->getDB()->setDbname()}`.`{$table->getName()}`";
-	}
-	
-	/**
-	 * Get quoted identifier for a column
-	 * @param Column $column
-	 * @return string
-	 */
-	public function getColumnIdentifier(Column $column) {
-		
-	}
-	
-	/**
 	 * Get a list of names of the table in the database
 	 * @return array
 	 */

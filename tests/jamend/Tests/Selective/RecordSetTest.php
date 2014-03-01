@@ -1,16 +1,16 @@
 <?php
 namespace jamend\Tests\Selective;
 
-class RecordSetTest extends \PHPUnit_Framework_TestCase {
+class RecordSetTest extends TestCase {
 	public function testGetRecordSet() {
-		$db = \jamend\Selective\DB::loadDB('test', '\jamend\Tests\Selective\MockDB', array());
+		$db = $this->getDB();
 		$table = $db->{'Book'};
 		$this->assertNotNull($table);
 		$this->assertInstanceOf('jamend\Selective\RecordSet', $table);
 	}
 	
 	public function testOpenRecordSet() {
-		$db = \jamend\Selective\DB::loadDB('test', '\jamend\Tests\Selective\MockDB', array());
+		$db = $this->getDB();
 		$table = $db->{'Book'};
 		$table2 = $table->openRecordSet();
 		$this->assertNotNull($table2);
@@ -19,7 +19,7 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase {
 	}
 	
 	public function testGetByID() {
-		$db = \jamend\Selective\DB::loadDB('test', '\jamend\Tests\Selective\MockDB', array());
+		$db = $this->getDB();
 		$table = $db->{'Book'};
 		$id = 1;
 		$record = $table->{$id};

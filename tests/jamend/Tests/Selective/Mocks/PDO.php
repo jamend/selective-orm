@@ -1,10 +1,10 @@
 <?php
-namespace jamend\Tests\Selective;
+namespace jamend\Tests\Selective\Mocks;
 
-class MockPDO extends \PDO {
+class PDO extends \PDO {
 	public function __construct() {}
 	
 	public function prepare($statement, $options = null) {
-		return new MockStatement($statement);
+		return new PDOStatement($statement);
 	}
 }

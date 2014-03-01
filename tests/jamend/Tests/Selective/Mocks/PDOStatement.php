@@ -1,7 +1,7 @@
 <?php
-namespace jamend\Tests\Selective;
+namespace jamend\Tests\Selective\Mocks;
 
-class MockStatement extends \PDOStatement {
+class PDOStatement extends \PDOStatement {
 	private $sql;
 	private $fakeData = array(
 		'SHOW TABLES FROM `test`' => array(

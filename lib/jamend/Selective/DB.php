@@ -155,10 +155,26 @@ abstract class DB {
 	abstract public function getTables();
 	
 	/**
+	 * Checks if a table exists
+	 * @param string $tableName
+	 * @return bool
+	 */
+	public function hasTable($tableName) {
+		return in_array($tableName, $this->getTables());
+	}
+	
+	/**
 	 * Quote a value for use in SQL statements
 	 * @param mixed $value
 	 */
 	abstract public function quote($value);
+	
+	/**
+	 * Get a Table by name
+	 * @param string $name
+	 * @return Table
+	 */
+	abstract public function getTable($name);
 	
 	/**
 	 * Get a Table object for the given name
@@ -167,6 +183,6 @@ abstract class DB {
 	 */
 	public function __get($name) {
 		// Cache the table
-		return $this->$name = new Table($name, $this);
+		return $this->$name = $this->getTable($name);
 	}
 }

@@ -9,8 +9,10 @@ namespace jamend\Selective;
 class Table extends RecordSet {
 	private $name;
 	private $db;
-	private $columns = array();
-	private $keys = array();
+	public $columns = array();
+	public $keys = array();
+	public $relatedTables = array();
+	public $constraints = array();
 	
 	/**
 	 * Get a table to match the one with the given name in the database
@@ -20,19 +22,6 @@ class Table extends RecordSet {
 	public function __construct($name, $db) {
 		$this->name = $name;
 		$this->db = $db;
-		
-		// Get the list of columns
-		// FIXME MySQL-specific; move to DB implementation
-		$columnInfos = $this->getDB()->fetchAll('SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?', array($this->getDB()->getName(), $this->getName()));
-		
-		// Get the list of primary keys
-		foreach ($columnInfos as $info) {
-			$column = new Column($info, $this);
-			$this->columns[$column->name] = $column;
-			if ($column->isPrimaryKey) {
-				$this->keys[] = $column->name;
-			}
-		}
 		
 		parent::__construct($this);
 	}

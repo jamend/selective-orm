@@ -61,6 +61,67 @@ class Record {
 	}
 	
 	/**
+	 * Get a table related to this record by table name
+	 * @param string $tableName
+	 * @return \jamend\Selective\Table|boolean
+	 */
+	public function getRelatedTable($tableName) {
+		if ($this->getTable()->getDB()->hasTable($tableName)) {
+			$relatedTable = $this->getTable()->getDB()->getTable($tableName);
+			if (isset($relatedTable->relatedTables[$this->getTable()->getName()])) {
+				$relationship = $relatedTable->relatedTables[$this->getTable()->getName()];
+				for ($i = 0; $i < count($relationship['localColumns']); $i++) {
+					$localColumn = $relatedTable->getColumns()[$relationship['localColumns'][$i]];
+					$foreignColumnName = $relationship['relatedColumns'][$i];
+					$relatedTable = $relatedTable->where($localColumn->getFullIdentifier() . ' = ?', $this->{$foreignColumnName});
+				}
+				return $relatedTable;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Get a table related to this record by table name
+	 * @param string $name
+	 * @return \jamend\Selective\Table|null
+	 */
+	public function __get($name) {
+		if (($table = $this->getRelatedTable($name)) !== false) {
+			return $table;
+		} else {
+			trigger_error('Undefined property: ' . get_class($this) . '::$' . $name, E_USER_NOTICE);
+			return null;
+		}
+	}
+	
+	/**
+	 * Checks if a table related to this record exists by table name
+	 * @param string $tableName
+	 * @return \jamend\Selective\Table|boolean
+	 */
+	public function hasRelatedTable($tableName) {
+		if ($this->getTable()->getDB()->hasTable($tableName)) {
+			$relatedTable = $this->getTable()->getDB()->getTable($tableName);
+			return isset($relatedTable->relatedTables[$this->getTable()->getName()]);
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Checks if a table related to this record exists by table name
+	 * @param string $name
+	 * @return bool
+	 */
+	public function __isset($name) {
+		return $this->hasRelatedTable($name);
+	}
+	
+	/**
 	 * Get the WHERE clause to identify this record by its primary key values
 	 * @param &array $params array will to which prepared statement bind
 	 * 	parameters will be added

@@ -98,8 +98,9 @@ class PDOMySQL extends \jamend\Selective\DB {
 		if (!isset($this->tables)) {
 			$this->tables = array();
 			$tables = $this->fetchAll("SHOW TABLES FROM `{$this->dbname}` LIKE ?", array("{$this->getPrefix()}%"));
+			$offset = strlen($this->getPrefix());
 			foreach ($tables as $row) {
-				$this->tables[] = current($row);
+				$this->tables[] = substr(current($row), $offset);
 			}
 		}
 		return $this->tables;
@@ -171,8 +172,9 @@ class PDOMySQL extends \jamend\Selective\DB {
 			
 			// parse relationships
 			preg_match_all(self::CREATE_TABLE_SQL_CONSTRAINT_REGEX, $createTableSql, $constraints, PREG_SET_ORDER);
+			$offset = strlen($this->getPrefix());
 			foreach ($constraints as $constraint) {
-				$table->relatedTables[$constraint['relatedTable']] = array(
+				$table->relatedTables[substr($constraint['relatedTable'], $offset)] = array(
 					'localColumns' => explode('`, `', trim($constraint['localColumns'], '`')),
 					'relatedColumns' => explode('`, `', trim($constraint['relatedColumns'], '`')),
 				);

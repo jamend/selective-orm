@@ -147,10 +147,10 @@ class PDOMySQL extends \jamend\Selective\DB {
 				$column->allowNull = $columnInfo['allowNull'] === 'NULL';
 				
 				if ($column->type == 'set' || $column->type == 'enum') {
-					$options = explode(',', $column->length);
+					$options = explode("','", trim($columnInfo['length'], "'"));
 					$i = 0;
 					foreach ($options as $option) {
-						$column->options[($column->type == 'set' ? pow(2, $i) : $i)] = trim($option, '`');
+						$column->options[($column->type == 'set' ? pow(2, $i) : $i)] = $option;
 						$i++;
 					}
 				} else {

@@ -11,6 +11,10 @@ abstract class DB {
 	 * @var \PDO
 	 */
 	protected $pdo;
+	/**
+	 * @var string
+	 */
+	protected $prefix = '';
 	
 	/**
 	 * Connect to the database
@@ -22,6 +26,22 @@ abstract class DB {
 	 * @return string
 	 */
 	abstract public function getName();
+	
+	/**
+	 * Get the database table prefix
+	 * @return string
+	 */
+	public function getPrefix() {
+		return $this->prefix;
+	}
+	
+	/**
+	 * Set the database table prefix
+	 * @param $prefix string
+	 */
+	public function setPrefix($prefix) {
+		return $this->prefix = $prefix;
+	}
 	
 	/**
 	 * Get the full quoted identifier including database name

@@ -68,7 +68,7 @@ class PDOMySQL extends \jamend\Selective\DB {
 	 * @return string
 	 */
 	public function getTableBaseIdentifier(\jamend\Selective\Table $table) {
-		return "`{$table->getName()}`";
+		return "`{$this->getPrefix()}{$table->getName()}`";
 	}
 	
 	/**
@@ -97,7 +97,7 @@ class PDOMySQL extends \jamend\Selective\DB {
 		// Cache the list of tables
 		if (!isset($this->tables)) {
 			$this->tables = array();
-			$tables = $this->fetchAll("SHOW TABLES FROM `{$this->dbname}`");
+			$tables = $this->fetchAll("SHOW TABLES FROM `{$this->dbname}` LIKE ?", array("{$this->getPrefix()}%"));
 			foreach ($tables as $row) {
 				$this->tables[] = current($row);
 			}
@@ -128,7 +128,7 @@ class PDOMySQL extends \jamend\Selective\DB {
 	 * @return \jamend\Selective\Table
 	 */
 	public function getTable($name) {
-		$createTableInfo = $this->fetchAll('SHOW CREATE TABLE ' . $name);
+		$createTableInfo = $this->fetchAll("SHOW CREATE TABLE `{$this->getPrefix()}{$name}`");
 		$createTableSql = $createTableInfo[0]['Create Table'];
 		$columns = array();
 		$primaryKeys = array();

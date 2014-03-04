@@ -17,17 +17,17 @@ $db = \jamend\Selective\DB::loadDB(
 
 Getting a record from the database
 ```php
-$books = $db->Book; // get a Table instance for the Book table in the database
+$books = $db->Books; // get a Table instance for the Books table in the database
 
-$book = $books->{12}; // get a Record instance for the Book with ID 12
+$book = $books->{12}; // get a Record instance for the book with ID 12
 
 echo $book->title; // columns map directly to properties of the record
 ```
 
 Looping through records with a where and order by clause
 ```php
-$someBooks = $db->Book
-	->where('tite LIKE ?', '%')
+$someBooks = $db->Books
+	->where('tite LIKE ?', 'The%')
 	->orderBy('datePublished', 'DESC')
 ; // fluent interface
 
@@ -58,4 +58,22 @@ $book->save();
 Delete book
 ```php
 $books->{14}->delete();
+```
+
+**Relationships**
+
+Selective can also simplify the use of foreign key constraints that are defined in the schema. Here are some examples:
+
+Get all books by an author
+```php
+$authors = $db->Authors;
+
+$author = $authors->{1};
+$books = $author->Books; // $books will be the Books table filtered by the author
+```
+
+Get the author of a book
+```php
+$book = $books->{15};
+$author = $book->related('idAuthor'); // $author will be a Record for the author matching the book's idAuthor
 ```

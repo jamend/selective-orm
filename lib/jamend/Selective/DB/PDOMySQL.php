@@ -19,21 +19,33 @@ class PDOMySQL extends \jamend\Selective\DB {
 	protected $tables;
 	
 	/**
-	 * 
+	 * Set the connection database name
 	 * @param string $dbname
 	 */
 	public function setDbname($dbname) {
 		$this->dbname = $dbname;
 	}
-	
+
+	/**
+	 * Set the connection host name
+	 * @param string $host
+	 */
 	public function setHost($host) {
 		$this->host = $host;
 	}
-	
+
+	/**
+	 * Set the connection username
+	 * @param string $username
+	 */
 	public function setUsername($username) {
 		$this->username = $username;
 	}
 	
+	/**
+	 * Set the connection password
+	 * @param string $password
+	 */
 	public function setPassword($password) {
 		$this->password = $password;
 	}
@@ -141,23 +153,27 @@ class PDOMySQL extends \jamend\Selective\DB {
 			
 			foreach ($columns as $columnInfo) {
 				$column = new \jamend\Selective\Column($table);
-				$column->name = $columnInfo['name'];
-				$column->type = $columnInfo['type'];
-				$column->default = isset($columnInfo['default']) ? $columnInfo['default'] : null;
-				$column->allowNull = $columnInfo['allowNull'] === 'NULL';
+				$column
+					->setName($columnInfo['name'])
+					->setType($columnInfo['type'])
+					->setDefault(isset($columnInfo['default']) ? $columnInfo['default'] : null)
+					->setAllowNull($columnInfo['allowNull'] === 'NULL')
+				;
 				
-				if ($column->type == 'set' || $column->type == 'enum') {
-					$options = explode("','", trim($columnInfo['length'], "'"));
+				if ($column->getType() == 'set' || $column->getType() == 'enum') {
+					$rawOptions = explode("','", trim($columnInfo['length'], "'"));
+					$options = array();
 					$i = 0;
-					foreach ($options as $option) {
-						$column->options[($column->type == 'set' ? pow(2, $i) : $i)] = $option;
+					foreach ($rawOptions as $option) {
+						$options[($column->getType() == 'set' ? pow(2, $i) : $i)] = $option;
 						$i++;
 					}
+					$column->setOptions($options);
 				} else {
-					$column->length = $columnInfo['length'] === '' ? null : $columnInfo['length'];
+					$column->setLength($columnInfo['length'] === '' ? null : $columnInfo['length']);
 				}
 				
-				$table->columns[$column->name] = $column;
+				$table->columns[$column->getName()] = $column;
 			}
 			
 			// parse primary keys
@@ -167,7 +183,7 @@ class PDOMySQL extends \jamend\Selective\DB {
 			foreach ($primaryKeys as $primaryKey) {
 				$primaryKey = trim($primaryKey, '`');
 				$table->keys[] = $primaryKey;
-				$table->columns[$primaryKey]->isPrimaryKey = true;
+				$table->columns[$primaryKey]->setPrimaryKey(true);
 			}
 			
 			// parse relationships

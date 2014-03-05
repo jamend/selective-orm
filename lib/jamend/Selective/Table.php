@@ -89,7 +89,7 @@ class Table extends RecordSet {
 	public function create() {
 		$record = new Record($this, false);
 		foreach ($this->getColumns() as $columnName => $column) {
-			$record->{$columnName} = $column->default;
+			$record->{$columnName} = $column->getDefault();
 		}
 		return $record;
 	}

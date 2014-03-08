@@ -7,8 +7,8 @@ namespace jamend\Selective;
  * @copyright 2014, Jonathan Amend
  */
 class Record {
-	// Keep any special properties in __meta so that any instances look more like plain old objects
-	private $__meta = array();
+	// Keep any special properties in _meta so that any instances look more like plain old objects
+	private $_meta = array();
 	
 	/**
 	 * Get a record in the given table.
@@ -18,9 +18,9 @@ class Record {
 	 * @param string $exists Is this a real record, or a new one that we will probably insert later?
 	 */
 	public function __construct(Table $table, $exists = true) {
-		$this->__meta['table'] = $table;
-		$this->__meta['exists'] = $exists;
-		$this->__meta['existed'] = $exists;
+		$this->_meta['table'] = $table;
+		$this->_meta['exists'] = $exists;
+		$this->_meta['existed'] = $exists;
 	}
 	
 	/**
@@ -28,7 +28,7 @@ class Record {
 	 * @return Table
 	 */
 	public function getTable() {
-		return $this->__meta['table'];
+		return $this->_meta['table'];
 	}
 	
 	/**
@@ -36,7 +36,7 @@ class Record {
 	 * @return boolean
 	 */
 	public function exists() {
-		return $this->__meta['exists'];
+		return $this->_meta['exists'];
 	}
 	
 	/**
@@ -44,7 +44,7 @@ class Record {
 	 * @return boolean
 	 */
 	public function existed() {
-		return $this->__meta['existed'];
+		return $this->_meta['existed'];
 	}
 	
 	/**
@@ -148,8 +148,8 @@ class Record {
 			$affectedRows = $this->insert();
 		}
 		
-		$this->__meta['exists'] = $affectedRows !== false;
-		return $this->__meta['exists'];
+		$this->_meta['exists'] = $affectedRows !== false;
+		return $this->_meta['exists'];
 	}
 
 	/**
@@ -208,7 +208,7 @@ class Record {
 		$keyCriteria = $this->getIdentifyingWhereClause($params);
 		
 		$affectedRows = $this->getTable()->getDB()->executeUpdate("DELETE FROM {$this->getTable()->getFullIdentifier()} WHERE {$keyCriteria}", $params);
-		$this->__meta['exists'] = $affectedRows === false && $this->__meta['exists'];
-		return !$this->__meta['exists'];
+		$this->_meta['exists'] = $affectedRows === false && $this->_meta['exists'];
+		return !$this->_meta['exists'];
 	}
 }

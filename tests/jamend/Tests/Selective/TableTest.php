@@ -4,27 +4,27 @@ namespace jamend\Tests\Selective;
 class TableTest extends TestCase {
 	public function testGetTable() {
 		$db = $this->getDB();
-		$table = $db->{'Book'};
+		$table = $db->{'Books'};
 		$this->assertNotNull($table);
 		$this->assertInstanceOf('jamend\Selective\Table', $table);
 	}
 	
 	public function testGetName() {
 		$db = $this->getDB();
-		$table = $db->{'Book'};
-		$this->assertEquals($table->getName(), 'Book');
+		$table = $db->{'Books'};
+		$this->assertEquals($table->getName(), 'Books');
 	}
 	
 	public function testGetKeys() {
 		$db = $this->getDB();
-		$table = $db->{'Book'};
+		$table = $db->{'Books'};
 		$keys = $table->getKeys();
 		$this->assertSame($keys, array('idBook'));
 	}
 	
 	public function testGetTableColumns() {
 		$db = $this->getDB();
-		$table = $db->{'Book'};
+		$table = $db->{'Books'};
 		$columns = $table->getColumns();
 		$this->assertArrayHasKey('idBook', $columns);
 		$this->assertArrayHasKey('title', $columns);
@@ -35,7 +35,7 @@ class TableTest extends TestCase {
 	
 	public function testCreate() {
 		$db = $this->getDB();
-		$table = $db->{'Book'};
+		$table = $db->{'Books'};
 		$record = $table->create();
 		$this->assertNotNull($record);
 		$this->assertInstanceOf('jamend\Selective\Record', $record);

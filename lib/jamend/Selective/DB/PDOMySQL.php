@@ -157,7 +157,7 @@ class PDOMySQL extends \jamend\Selective\DB {
 					->setName($columnInfo['name'])
 					->setType($columnInfo['type'])
 					->setDefault(isset($columnInfo['default']) ? $columnInfo['default'] : null)
-					->setAllowNull($columnInfo['allowNull'] === 'NULL')
+					->setAllowNull(!isset($columnInfo['allowNull']) || $columnInfo['allowNull'] === 'NULL')
 				;
 				
 				if ($column->getType() == 'set' || $column->getType() == 'enum') {
@@ -170,7 +170,7 @@ class PDOMySQL extends \jamend\Selective\DB {
 					}
 					$column->setOptions($options);
 				} else {
-					$column->setLength($columnInfo['length'] === '' ? null : $columnInfo['length']);
+					$column->setLength(isset($columnInfo['length']) && $columnInfo['length'] !== '' ? $columnInfo['length'] : null);
 				}
 				
 				$table->columns[$column->getName()] = $column;

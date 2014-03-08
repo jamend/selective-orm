@@ -159,6 +159,23 @@ class Column {
 	}
 	
 	/**
+	 * Get the SQL expression to get the normalized value for this column
+	 * @return string
+	 */
+	public function getSQLExpression() {
+		return $this->getTable()->getDB()->getColumnSQLExpression($this);
+	}
+	
+	/**
+	 * GGet the DB implementation-specific representation of a value for this column
+	 * @param mixed $value
+	 * @return mixed
+	 */
+	public function getColumnDenormalizedValue($value) {
+		return $this->getTable()->getDB()->getColumnDenormalizedValue($this, $value);
+	}
+	
+	/**
 	 * Get the full quoted identifier including database/table name
 	 * @return string
 	 */

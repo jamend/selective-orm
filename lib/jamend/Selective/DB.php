@@ -72,6 +72,21 @@ abstract class DB {
 	abstract public function getColumnBaseIdentifier(Column $column);
 	
 	/**
+	 * Get the SQL expression to get the normalized value for a column
+	 * @param Column $column
+	 * @return string
+	 */
+	abstract public function getColumnSQLExpression(Column $column);
+	
+	/**
+	 * Get the implementation-specific representation of a value for a column
+	 * @param Column $column
+	 * @param mixed $value
+	 * @return mixed
+	 */
+	abstract public function getColumnDenormalizedValue(Column $column, $value);
+	
+	/**
 	 * Load a DB of the given type and parameters 
 	 * @param string $type DB class name
 	 * @param array $parameters DB class-specific parameters

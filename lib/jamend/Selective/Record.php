@@ -163,7 +163,7 @@ class Record {
 		$update = '';
 		foreach ($this->getTable()->getColumns() as $columnName => $column) {
 			$update .= ", {$column->getBaseIdentifier()} = ?";
-			$params[] = $this->{$columnName};
+			$params[] = $column->getColumnDenormalizedValue($this->{$columnName});
 		}
 		$update = substr($update, 2); // remove first ', '
 		
@@ -188,7 +188,7 @@ class Record {
 		foreach ($this->getTable()->getColumns() as $columnName => $column) {
 			$fields .= ", {$column->getBaseIdentifier()}";
 			$values .= ', ?';
-			$params[] = $this->{$columnName};
+			$params[] = $column->getColumnDenormalizedValue($this->{$columnName});
 		}
 		$fields = substr($fields, 2); // remove first ', '
 		$values = substr($values, 2); // remove first ', '

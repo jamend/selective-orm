@@ -102,6 +102,46 @@ class PDOMySQL extends \jamend\Selective\DB {
 	}
 	
 	/**
+	 * Get the MySQL-specific representation of a value for a column
+	 * @param Column $column
+	 * @return string
+	 */
+	public function getColumnSQLExpression(\jamend\Selective\Column $column) {
+		switch ($column->getType()) {
+			case 'date':
+			case 'datetime':
+				return "TIME_TO_SEC(TIMEDIFF({$column->getBaseIdentifier()}, '1970-01-01 00:00:00')) AS {$column->getName()}";
+				break;
+			case 'set':
+				return "{$column->getBaseIdentifier()} + 0 AS {$column->getName()}";
+				break;
+			default:
+				return $column->getBaseIdentifier();
+				break;
+		}
+	}
+	
+	/**
+	 * Get the SQL expression representing a value for a column
+	 * @param Column $column
+	 * @param mixed $value
+	 * @return mixed
+	 */
+	public function getColumnDenormalizedValue(\jamend\Selective\Column $column, $value) {
+		switch ($column->getType()) {
+			case 'date':
+				return date('Y-m-d', $value);
+				break;
+			case 'datetime':
+				return date('Y-m-d H:i:s', $value);
+				break;
+			default:
+				return $value;
+				break;
+		}
+	}
+	
+	/**
 	 * Get a list of names of the table in the database
 	 * @return array
 	 */

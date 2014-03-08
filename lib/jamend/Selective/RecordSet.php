@@ -117,9 +117,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 		$columns = '';
 		// Add each column to the query
 		foreach ($this->getTable()->getColumns() as $columnName => $column) {
-			$columns .= ", {$column->getBaseIdentifier()}";
-			// Force columns of type set to return the numeric value instead of the string that it maps to
-			if ($column->getType() == 'set') $columns .= " + 0 AS {$column->getBaseIdentifier()}";
+			$columns .= ", {$column->getSQLExpression()}";
 		}
 		$columns = substr($columns, 2); // remove first ', '
 		

@@ -75,5 +75,15 @@ $books = $author->Books; // $books will be the Books table filtered by the autho
 Get the author of a book
 ```php
 $book = $books->{15};
-$author = $book->related('idAuthor'); // $author will be a Record for the author matching the book's idAuthor
+$author = $book->idAuthor; // $author will be a Record for the author matching the book's idAuthor
+echo $author->name;
+```
+
+Set the author of a book
+```php
+$author = $authors->{2}
+$book = $books->{16};
+
+$book->idAuthor = $author; // '2' would also work
+$book->save();
 ```

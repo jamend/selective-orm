@@ -7,7 +7,7 @@ namespace jamend\Selective;
  * @copyright 2014, Jonathan Amend
  */
 class Record {
-	// Keep any special properties in _meta so that any instances look more like plain old objects
+	// Keep internal state in _meta so that any instances look more like plain old objects
 	private $_meta = array();
 	
 	/**
@@ -21,6 +21,12 @@ class Record {
 		$this->_meta['table'] = $table;
 		$this->_meta['exists'] = $exists;
 		$this->_meta['existed'] = $exists;
+		foreach ($table->getForeignKeys() as $localColumn => $foreignKey) {
+			$constraint = $this->getTable()->constraints[$foreignKey];
+			$this->_meta['foreignRecords'][$localColumn] = $this->{$localColumn};
+			// unset the property, so that the magic __getter will be invoked
+			unset($this->{$localColumn});
+		}
 	}
 	
 	/**
@@ -54,7 +60,7 @@ class Record {
 	 */
 	public function getID() {
 		$key = '';
-		foreach ($this->getTable()->getKeys() as $columnName) {
+		foreach ($this->getTable()->getPrimaryKeys() as $columnName) {
 			$key .= ',' . $this->{$columnName};
 		}
 		return substr($key, 1);
@@ -69,12 +75,15 @@ class Record {
 		if ($this->getTable()->getDB()->hasTable($tableName)) {
 			$relatedTable = $this->getTable()->getDB()->getTable($tableName);
 			if (isset($relatedTable->relatedTables[$this->getTable()->getName()])) {
-				$relationship = $relatedTable->relatedTables[$this->getTable()->getName()];
-				for ($i = 0; $i < count($relationship['localColumns']); $i++) {
-					$localColumn = $relatedTable->getColumns()[$relationship['localColumns'][$i]];
-					$foreignColumnName = $relationship['relatedColumns'][$i];
+				$constraintName = $relatedTable->relatedTables[$this->getTable()->getName()];
+				$constraint = $relatedTable->constraints[$constraintName];
+				
+				for ($i = 0; $i < count($constraint['localColumns']); $i++) {
+					$localColumn = $relatedTable->getColumns()[$constraint['localColumns'][$i]];
+					$foreignColumnName = $constraint['relatedColumns'][$i];
 					$relatedTable = $relatedTable->where($localColumn->getFullIdentifier() . ' = ?', $this->{$foreignColumnName});
 				}
+				
 				return $relatedTable;
 			} else {
 				return false;
@@ -85,13 +94,38 @@ class Record {
 	}
 	
 	/**
+	 * Get the related record by value of the given column name
+	 * @param string $columnName
+	 * @return Ambigous \jamend\Selective\Record|boolean
+	 */
+	public function getForeignRecord($columnName) {
+		if (isset($this->_meta['foreignRecords'][$columnName])) {
+			$constraintName = $this->getTable()->getForeignKeys()[$columnName];
+			$constraint = $this->getTable()->constraints[$constraintName];
+			$relatedTable = $this->getTable()->getDB()->getTable($constraint['relatedTable']);
+			
+			for ($i = 0; $i < count($constraint['localColumns']); $i++) {
+				$localColumn = $relatedTable->getColumns()[$constraint['localColumns'][$i]];
+				$foreignColumnName = $constraint['relatedColumns'][$i];
+				$relatedTable = $relatedTable->where($localColumn->getFullIdentifier() . ' = ?', $this->_meta['foreignRecords'][$localColumn->getName()]);
+			}
+			
+			return $relatedTable->first();
+		} else {
+			return false;
+		}
+	}
+	
+	/**
 	 * Get a table related to this record by table name
 	 * @param string $name
-	 * @return \jamend\Selective\Table|null
+	 * @return mixed
 	 */
 	public function __get($name) {
 		if (($table = $this->getRelatedTable($name)) !== false) {
 			return $table;
+		} else if (($foreignRecord = $this->getForeignRecord($name)) !== false) {
+			return $foreignRecord;
 		} else {
 			trigger_error('Undefined property: ' . get_class($this) . '::$' . $name, E_USER_NOTICE);
 			return null;
@@ -113,12 +147,21 @@ class Record {
 	}
 
 	/**
+	 * Checks if there is a related record by value of the given column name
+	 * @param string $columnName
+	 * @return Ambigous \jamend\Selective\Record|boolean
+	 */
+	public function hasForeignRecord($columnName) {
+		return isset($this->_meta['foreignRecords'][$columnName]);
+	}
+
+	/**
 	 * Checks if a table related to this record exists by table name
 	 * @param string $name
 	 * @return bool
 	 */
 	public function __isset($name) {
-		return $this->hasRelatedTable($name);
+		return $this->hasRelatedTable($name) || $this->hasForeignRecord($name);
 	}
 	
 	/**
@@ -128,7 +171,7 @@ class Record {
 	 */
 	private function getIdentifyingWhereClause(&$params) {
 		$keyCriteria = '';
-		foreach ($this->getTable()->getKeys() as $columnName) {
+		foreach ($this->getTable()->getPrimaryKeys() as $columnName) {
 			$column = $this->getTable()->getColumns()[$columnName];
 			$keyCriteria .= " AND {$column->getBaseIdentifier()} = ?";
 			$params[] = $this->{$columnName};

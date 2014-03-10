@@ -10,7 +10,8 @@ class Table extends RecordSet {
 	private $name;
 	private $db;
 	public $columns = array();
-	public $keys = array();
+	public $primaryKeys = array();
+	public $foreignKeys = array();
 	public $relatedTables = array();
 	public $constraints = array();
 	
@@ -78,8 +79,16 @@ class Table extends RecordSet {
 	 * Get an array of this table's primary keys
 	 * @return array
 	 */
-	public function getKeys() {
-		return $this->keys;
+	public function getPrimaryKeys() {
+		return $this->primaryKeys;
+	}
+
+	/**
+	 * Get an array of this table's foreign keys
+	 * @return array
+	 */
+	public function getForeignKeys() {
+		return $this->foreignKeys;
 	}
 
 	/**

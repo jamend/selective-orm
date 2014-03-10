@@ -222,7 +222,7 @@ class PDOMySQL extends \jamend\Selective\DB {
 			
 			foreach ($primaryKeys as $primaryKey) {
 				$primaryKey = trim($primaryKey, '`');
-				$table->keys[] = $primaryKey;
+				$table->primaryKeys[] = $primaryKey;
 				$table->columns[$primaryKey]->setPrimaryKey(true);
 			}
 			
@@ -230,14 +230,26 @@ class PDOMySQL extends \jamend\Selective\DB {
 			preg_match_all(self::CREATE_TABLE_SQL_CONSTRAINT_REGEX, $createTableSql, $constraints, PREG_SET_ORDER);
 			$offset = strlen($this->getPrefix());
 			foreach ($constraints as $constraint) {
-				$table->relatedTables[substr($constraint['relatedTable'], $offset)] = array(
-					'localColumns' => explode('`, `', trim($constraint['localColumns'], '`')),
-					'relatedColumns' => explode('`, `', trim($constraint['relatedColumns'], '`')),
-				);
+				$localColumns = explode('`, `', trim($constraint['localColumns'], '`'));
+				$relatedColumns = explode('`, `', trim($constraint['relatedColumns'], '`'));
+				
+				foreach ($localColumns as $localColumn) {
+					if (!isset($table->foreignKeys[$localColumn])) {
+						// columns can have multiple foreign keys; we can only use one of them
+						$table->foreignKeys[$localColumn] = $constraint['name'];
+					}
+				}
+				
+				$foreignTableName = substr($constraint['relatedTable'], $offset);
+				if (!isset($table->relatedTables[$foreignTableName])) {
+					// tables can be related to another table multiple times; we can only use one of them
+					$table->relatedTables[$foreignTableName] = $constraint['name'];
+				}
+				
 				$table->constraints[$constraint['name']] = array(
-					'localColumns' => explode('`, `', trim($constraint['localColumns'], '`')),
-					'relatedTable' => $constraint['relatedTable'],
-					'relatedColumns' => explode('`, `', trim($constraint['relatedColumns'], '`')),
+					'localColumns' => $localColumns,
+					'relatedTable' => $foreignTableName,
+					'relatedColumns' => $relatedColumns
 				);
 			}
 			

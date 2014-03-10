@@ -97,7 +97,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable {
 			// Build a where clause to find a record by its ID
 			$idParts = explode(',', $id);
 			for ($i = 0; $i < count($idParts); $i++) {
-				$columnName = $this->getTable()->getKeys()[$i];
+				$columnName = $this->getTable()->getPrimaryKeys()[$i];
 				$column = $this->getTable()->getColumns()[$columnName];
 				$where .= " AND {$column->getBaseIdentifier()} = ?";
 				$params[] = $idParts[$i];

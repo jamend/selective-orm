@@ -5,7 +5,7 @@ class PDOStatement extends \PDOStatement
 {
     private $sql;
     private $fakeData = array(
-        'SHOW TABLES FROM `test`' => array(
+        'SHOW TABLES FROM `test` LIKE ?' => array(
             0 =>
             array (
                 'Tables_in_sample' => 'Authors',

@@ -25,9 +25,13 @@ class Record
         $this->_meta['existed'] = $exists;
         foreach ($table->getForeignKeys() as $localColumn => $foreignKey) {
             $constraint = $this->getTable()->constraints[$foreignKey];
-            $this->_meta['foreignRecords'][$localColumn] = $this->{$localColumn};
-            // unset the property, so that the magic __getter will be invoked
-            unset($this->{$localColumn});
+            if (isset($this->{$localColumn})) {
+                $this->_meta['foreignRecords'][$localColumn] = $this->{$localColumn};
+                // unset the property, so that the magic __getter will be invoked
+                unset($this->{$localColumn});
+            } else {
+                $this->_meta['foreignRecords'][$localColumn] = null;
+            }
         }
     }
 

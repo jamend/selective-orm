@@ -18,12 +18,12 @@ class TableTest extends TestCase
         $this->assertEquals($table->getName(), 'Books');
     }
 
-    public function testGetKeys()
+    public function testGetPrimaryKeys()
     {
         $db = $this->getDB();
         $table = $db->{'Books'};
-        $keys = $table->getKeys();
-        $this->assertSame($keys, array('idBook'));
+        $primaryKeys = $table->getPrimaryKeys();
+        $this->assertSame($primaryKeys, array('idBook'));
     }
 
     public function testGetTableColumns()

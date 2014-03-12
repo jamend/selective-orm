@@ -7,7 +7,8 @@ namespace jamend\Selective\DB;
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class PDOMySQL extends \jamend\Selective\DB {
+class PDOMySQL extends \jamend\Selective\DB
+{
     const CREATE_TABLE_SQL_COLUMNS_REGEX = '/  `(?<name>[^`]+?)` (?<type>[^\(]+?)(?:\((?<length>[^\)]+)\))?(?: unsigned)?(?: CHARACTER SET [a-z0-9\-_]+)?(?: COLLATE [a-z0-9\-_]+)?(?<allowNull> NOT NULL)?(?: DEFAULT (?<default>.+?))?(?: AUTO_INCREMENT)? ?(?:COMMENT \'[^\']*\')?,?\s/';
     const CREATE_TABLE_SQL_PRIMARY_KEY_REGEX = '/  PRIMARY KEY \(([^\)]+?)\),?/';
     const CREATE_TABLE_SQL_CONSTRAINT_REGEX = '/  CONSTRAINT `(?P<name>[^`]+?)` FOREIGN KEY \((?P<localColumns>[^)]+?)\) REFERENCES `?(?P<relatedTable>[^`]*?)`? \((?P<relatedColumns>[^)]+?)\)(?: ON DELETE [A-Z]+)?(?: ON UPDATE [A-Z]+)?,?/';
@@ -22,7 +23,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * Set the connection database name
      * @param string $dbname
      */
-    public function setDbname($dbname) {
+    public function setDbname($dbname)
+    {
         $this->dbname = $dbname;
     }
 
@@ -30,7 +32,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * Set the connection host name
      * @param string $host
      */
-    public function setHost($host) {
+    public function setHost($host)
+    {
         $this->host = $host;
     }
 
@@ -38,7 +41,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * Set the connection username
      * @param string $username
      */
-    public function setUsername($username) {
+    public function setUsername($username)
+    {
         $this->username = $username;
     }
 
@@ -46,14 +50,16 @@ class PDOMySQL extends \jamend\Selective\DB {
      * Set the connection password
      * @param string $password
      */
-    public function setPassword($password) {
+    public function setPassword($password)
+    {
         $this->password = $password;
     }
 
     /**
      * Connect to the database
      */
-    protected function connect() {
+    protected function connect()
+    {
         $this->pdo = new \PDO("mysql:host={$this->host};dbname={$this->dbname}", $this->username, $this->password);
     }
 
@@ -61,7 +67,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * Get the database name
      * @return string
      */
-    public function getName() {
+    public function getName()
+    {
         return $this->dbname;
     }
 
@@ -70,7 +77,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * @param Table $table
      * @return string
      */
-    public function getTableFullIdentifier(\jamend\Selective\Table $table) {
+    public function getTableFullIdentifier(\jamend\Selective\Table $table)
+    {
         return "`{$this->getName()}`.{$this->getTableBaseIdentifier($table)}";
     }
 
@@ -79,7 +87,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * @param Table $table
      * @return string
      */
-    public function getTableBaseIdentifier(\jamend\Selective\Table $table) {
+    public function getTableBaseIdentifier(\jamend\Selective\Table $table)
+    {
         return "`{$this->getPrefix()}{$table->getName()}`";
     }
 
@@ -88,7 +97,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * @param Column $column
      * @return string
      */
-    public function getColumnFullIdentifier(\jamend\Selective\Column $column) {
+    public function getColumnFullIdentifier(\jamend\Selective\Column $column)
+    {
         return "{$this->getTableFullIdentifier($column->getTable())}.{$this->getColumnBaseIdentifier($column)}";
     }
 
@@ -97,7 +107,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * @param Column $column
      * @return string
      */
-    public function getColumnBaseIdentifier(\jamend\Selective\Column $column) {
+    public function getColumnBaseIdentifier(\jamend\Selective\Column $column)
+    {
         return "`{$column->getName()}`";
     }
 
@@ -106,7 +117,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * @param Column $column
      * @return string
      */
-    public function getColumnSQLExpression(\jamend\Selective\Column $column) {
+    public function getColumnSQLExpression(\jamend\Selective\Column $column)
+    {
         switch ($column->getType()) {
             case 'date':
             case 'datetime':
@@ -127,7 +139,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * @param mixed $value
      * @return mixed
      */
-    public function getColumnDenormalizedValue(\jamend\Selective\Column $column, $value) {
+    public function getColumnDenormalizedValue(\jamend\Selective\Column $column, $value)
+    {
         switch ($column->getType()) {
             case 'date':
                 return date('Y-m-d', $value);
@@ -145,7 +158,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * Get a list of names of the table in the database
      * @return array
      */
-    public function getTables() {
+    public function getTables()
+    {
         // Cache the list of tables
         if (!isset($this->tables)) {
             $this->tables = array();
@@ -162,7 +176,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * Quote a value for use in SQL statements
      * @param mixed $value
      */
-    public function quote($value) {
+    public function quote($value)
+    {
         if ($value === null) {
             return 'null';
         } else if (is_bool($value)) {
@@ -180,7 +195,8 @@ class PDOMySQL extends \jamend\Selective\DB {
      * @param String $name
      * @return \jamend\Selective\Table
      */
-    public function getTable($name) {
+    public function getTable($name)
+    {
         $createTableInfo = $this->fetchAll("SHOW CREATE TABLE `{$this->getPrefix()}{$name}`");
         $createTableSql = $createTableInfo[0]['Create Table'];
         $columns = array();

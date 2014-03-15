@@ -30,7 +30,7 @@ class PDOStatement extends \PDOStatement
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8'
             ),
         ),
-        'SELECT `idBook`, `title`, `idAuthor`, `isbn`, `description` FROM `test`.`Books` WHERE `idBook` = ?' => array(
+        'SELECT `idBook`, `title`, `idAuthor`, `isbn`, `description` FROM `test`.`Books` WHERE (`idBook` = ?)' => array(
             0 =>
             array (
                 'idBook' => '1',

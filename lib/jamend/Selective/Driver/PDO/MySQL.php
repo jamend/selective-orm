@@ -1,85 +1,55 @@
 <?php
-namespace jamend\Selective\DB;
+namespace jamend\Selective\Driver\PDO;
 
 /**
- * Wrap lower-level database access functions like connecting, queries, and
+ * Abstract lower-level database access functions like connecting, queries, and
  * fetching results
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class PDOMySQL extends \jamend\Selective\DB
+class MySQL extends \jamend\Selective\Driver\PDO
 {
     const CREATE_TABLE_SQL_COLUMNS_REGEX = '/  `(?<name>[^`]+?)` (?<type>[^\(]+?)(?:\((?<length>[^\)]+)\))?(?: unsigned)?(?: CHARACTER SET [a-z0-9\-_]+)?(?: COLLATE [a-z0-9\-_]+)?(?<allowNull> NOT NULL)?(?: DEFAULT (?<default>.+?))?(?: AUTO_INCREMENT)? ?(?:COMMENT \'[^\']*\')?,?\s/';
     const CREATE_TABLE_SQL_PRIMARY_KEY_REGEX = '/  PRIMARY KEY \(([^\)]+?)\),?/';
     const CREATE_TABLE_SQL_CONSTRAINT_REGEX = '/  CONSTRAINT `(?P<name>[^`]+?)` FOREIGN KEY \((?P<localColumns>[^)]+?)\) REFERENCES `?(?P<relatedTable>[^`]*?)`? \((?P<relatedColumns>[^)]+?)\)(?: ON DELETE [A-Z]+)?(?: ON UPDATE [A-Z]+)?,?/';
 
-    private $dbname;
     private $host;
     private $username;
     private $password;
-    protected $tables;
+    private $tables = array();
+    /**
+     * @var \PDO
+     */
+    protected $pdo;
 
     /**
-     * Set the connection database name
-     * @param string $dbname
+     * Load connection parameters
+     * @param array $parameters
      */
-    public function setDbname($dbname)
+    public function loadParameters($parameters)
     {
-        $this->dbname = $dbname;
-    }
-
-    /**
-     * Set the connection host name
-     * @param string $host
-     */
-    public function setHost($host)
-    {
-        $this->host = $host;
-    }
-
-    /**
-     * Set the connection username
-     * @param string $username
-     */
-    public function setUsername($username)
-    {
-        $this->username = $username;
-    }
-
-    /**
-     * Set the connection password
-     * @param string $password
-     */
-    public function setPassword($password)
-    {
-        $this->password = $password;
+        $this->host = $parameters['host'];
+        $this->username = $parameters['username'];
+        $this->password = $parameters['password'];
     }
 
     /**
      * Connect to the database
+     * @param \jamend\Selective\Database $database
      */
-    protected function connect()
+    public function connect(\jamend\Selective\Database $database)
     {
-        $this->pdo = new \PDO("mysql:host={$this->host};dbname={$this->dbname}", $this->username, $this->password);
-    }
-
-    /**
-     * Get the database name
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->dbname;
+        $this->pdo = new \PDO("mysql:host={$this->host};dbname={$database->getName()}", $this->username, $this->password);
     }
 
     /**
      * Get the full quoted identifier including database name
-     * @param Table $table
+     * @param \jamend\Selective\Table $table
      * @return string
      */
     public function getTableFullIdentifier(\jamend\Selective\Table $table)
     {
-        return "`{$this->getName()}`.{$this->getTableBaseIdentifier($table)}";
+        return "`{$table->getDatabase()->getName()}`.{$this->getTableBaseIdentifier($table)}";
     }
 
     /**
@@ -89,7 +59,7 @@ class PDOMySQL extends \jamend\Selective\DB
      */
     public function getTableBaseIdentifier(\jamend\Selective\Table $table)
     {
-        return "`{$this->getPrefix()}{$table->getName()}`";
+        return "`{$table->getDatabase()->getPrefix()}{$table->getName()}`";
     }
 
     /**
@@ -155,24 +125,6 @@ class PDOMySQL extends \jamend\Selective\DB
     }
 
     /**
-     * Get a list of names of the table in the database
-     * @return array
-     */
-    public function getTables()
-    {
-        // Cache the list of tables
-        if (!isset($this->tables)) {
-            $this->tables = array();
-            $tables = $this->fetchAll("SHOW TABLES FROM `{$this->dbname}` LIKE ?", array("{$this->getPrefix()}%"));
-            $offset = strlen($this->getPrefix());
-            foreach ($tables as $row) {
-                $this->tables[] = substr(current($row), $offset);
-            }
-        }
-        return $this->tables;
-    }
-
-    /**
      * Quote a value for use in SQL statements
      * @param mixed $value
      */
@@ -190,14 +142,34 @@ class PDOMySQL extends \jamend\Selective\DB
     }
 
     /**
+     * Get a list of names of the table in a database
+     * @param \jamend\Selective\Database $database
+     * @return string[]
+     */
+    public function getTables(\jamend\Selective\Database $database)
+    {
+        // Cache the list of tables
+        if (!isset($this->tables[$database->getName()])) {
+            $this->tables[$database->getName()] = array();
+            $tables = $this->fetchAll("SHOW TABLES FROM `{$database->getName()}` LIKE ?", array("{$database->getPrefix()}%"));
+            $offset = strlen($database->getPrefix());
+            foreach ($tables as $row) {
+                $this->tables[$database->getName()][] = substr(current($row), $offset);
+            }
+        }
+        return $this->tables[$database->getName()];
+    }
+
+    /**
      * Get a Table object for the given name
      * TODO table/column properties should not be public
      * @param String $name
+     * @param Database $database
      * @return \jamend\Selective\Table
      */
-    public function getTable($name)
+    public function getTable(\jamend\Selective\Database $database, $name)
     {
-        $createTableInfo = $this->fetchAll("SHOW CREATE TABLE `{$this->getPrefix()}{$name}`");
+        $createTableInfo = $this->fetchAll("SHOW CREATE TABLE `{$database->getPrefix()}{$name}`");
         $createTableSql = $createTableInfo[0]['Create Table'];
         $columns = array();
         $primaryKeys = array();
@@ -205,7 +177,7 @@ class PDOMySQL extends \jamend\Selective\DB
 
         // parse columns
         if (preg_match_all(self::CREATE_TABLE_SQL_COLUMNS_REGEX, $createTableSql, $columns, PREG_SET_ORDER)) {
-            $table = new \jamend\Selective\Table($name, $this);
+            $table = new \jamend\Selective\Table($name, $database);
 
             foreach ($columns as $columnInfo) {
                 $column = new \jamend\Selective\Column($table);
@@ -244,7 +216,7 @@ class PDOMySQL extends \jamend\Selective\DB
 
             // parse relationships
             preg_match_all(self::CREATE_TABLE_SQL_CONSTRAINT_REGEX, $createTableSql, $constraints, PREG_SET_ORDER);
-            $offset = strlen($this->getPrefix());
+            $offset = strlen($database->getPrefix());
             foreach ($constraints as $constraint) {
                 $localColumns = explode('`, `', trim($constraint['localColumns'], '`'));
                 $relatedColumns = explode('`, `', trim($constraint['relatedColumns'], '`'));

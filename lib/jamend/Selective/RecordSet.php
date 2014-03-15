@@ -9,20 +9,32 @@ namespace jamend\Selective;
  */
 class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
 {
-    private $dirty = true;
-    private $query = array(
-        'where' => array(),
-        'having' => array(),
-    );
+    /**
+     * @var Query
+     */
+    private $query;
+    /**
+     * @var array
+     */
     private $records;
+    /**
+     * @var bool
+     */
+    private $dirty = true;
+    /**
+     * @var Driver
+     */
+    private $driver;
 
     /**
      * Make a record set for the given table
      * @param Table $table
      */
-    public function __construct(Table $table)
+    protected function __construct(Table $table)
     {
         $this->table = $table;
+        $this->query = new Query();
+        $this->driver = $table->getDriver();
     }
 
     /**
@@ -35,24 +47,23 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
+     * Get the driver
+     * @return \jamend\Selective\Driver
+     */
+    public function getDriver()
+    {
+        return $this->driver;
+    }
+
+    /**
      * Get a clone of this record set, ready for more filters/criteria
      * @return \jamend\Selective\RecordSet
      */
     public function openRecordSet()
     {
-        return clone $this;
-    }
-
-    /**
-     * Get the record with the given ID from this record set
-     * @param string $id
-     * @return Record
-     */
-    public function __get($id)
-    {
-        $result = $this->query($id);
-        $record = $this->getTable()->getDB()->fetchObject($result, 'jamend\Selective\Record', array($this->getTable()));
-        return $record;
+        $recordSet = new self($this->getTable());
+        $recordSet->query = clone $this->query;
+        return $recordSet;
     }
 
     /**
@@ -66,7 +77,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
         $params = func_get_args();
         $criteria = array_shift($params);
         $recordSet = $this->openRecordSet();
-        $recordSet->query['where'][] = array($criteria, $params);
+        $recordSet->query->addHaving($criteria, $params);
         return $recordSet;
     }
 
@@ -81,56 +92,87 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
         $params = func_get_args();
         $criteria = array_shift($params);
         $recordSet = $this->openRecordSet();
-        $recordSet->query['having'][] = array($criteria, $params);
+        $recordSet->query->addHaving($criteria, $params);
         return $recordSet;
     }
 
     /**
-     * Build the SQL query for this record set
-     * @param string $id Build the query to get the record with the ID from the table
-     * @return string SQL query
+     * Return a new record set with the given limit clause
+     * @param int $limit
+     * @param int $offset
+     * @return \jamend\Selective\RecordSet
      */
-    private function query($id = null)
+    public function limit($limit, $offset = 0)
     {
-        $params = array();
+        $recordSet = $this->openRecordSet();
+        $recordSet->query->setLimit($limit, $offset);
+        return $recordSet;
+    }
 
-        // build where clause
-        $where = '';
-        foreach ($this->query['where'] as $whereClause) {
-            $where .= ' AND (' . $whereClause[0] . ')';
-            if (!empty($whereClause[1])) $params = array_merge($params, $whereClause[1]);
+    /**
+     * Return a new record set order by the given field and direction
+     * @param string $field
+     * @param string $direction ASC or DESC
+     * @return \jamend\Selective\RecordSet
+     */
+    public function orderBy($field, $direction = 'ASC')
+    {
+        $recordSet = $this->openRecordSet();
+        $recordSet->query->addOrderBy($field, $direction);
+        return $recordSet;
+    }
+
+    /**
+     * Get the record with the given ID from this record set
+     * @param string $name
+     * @return Record
+     */
+    public function __get($name)
+    {
+        $record = $this->getRecordByID($name);
+        if ($record) {
+            return $record;
+        } else {
+            trace();die;
+            trigger_error('Undefined property: ' . get_class($this) . '::$' . $name, E_USER_NOTICE);
+            return null;
+        }
+    }
+
+    /**
+     * Get the record with the given ID from this record set
+     * @param string $id
+     * @return Record
+     */
+    public function getRecordByID($id)
+    {
+        $query = clone $this->query;
+
+        // build a where clause to find a record by its ID
+        $idParts = explode(',', $id);
+        for ($i = 0; $i < count($idParts); $i++) {
+            $columnName = $this->getTable()->getPrimaryKeys()[$i];
+            $column = $this->getTable()->getColumn($columnName);
+            $query->addWhere("{$column->getBaseIdentifier()} = ?", array($idParts[$i]));
         }
 
-        if ($id !== null) {
-            // Build a where clause to find a record by its ID
-            $idParts = explode(',', $id);
-            for ($i = 0; $i < count($idParts); $i++) {
-                $columnName = $this->getTable()->getPrimaryKeys()[$i];
-                $column = $this->getTable()->getColumns()[$columnName];
-                $where .= " AND {$column->getBaseIdentifier()} = ?";
-                $params[] = $idParts[$i];
-            }
+        $records = $this->getDriver()->getRecords($this->getTable(), $query);
+        if (count($records) == 0) {
+            return null;
+        } else {
+            return current($records);
         }
+    }
 
-        if ($where) $where = ' WHERE ' . substr($where, 5); // replace first AND with WHERE
-
-        // build having clause
-        $having = '';
-        foreach ($this->query['having'] as $havingClause) {
-            $having .= ' AND (' . $havingClause[0] . ')';
-            if (!empty($havingClause[1])) $params = array_merge($params, $havingClause[1]);
+    /**
+     * Load the records for this record set
+     */
+    private function load()
+    {
+        if ($this->dirty) {
+            $this->records = $this->getDriver()->getRecords($this->getTable(), $this->query);
+            $this->dirty = false;
         }
-        if ($having) $having = ' HAVING ' . substr($having, 5); // replace first AND with HAVING
-
-        $columns = '';
-        // Add each column to the query
-        foreach ($this->getTable()->getColumns() as $columnName => $column) {
-            $columns .= ", {$column->getSQLExpression()}";
-        }
-        $columns = substr($columns, 2); // remove first ', '
-
-        $sql = "SELECT {$columns} FROM {$this->getTable()->getFullIdentifier()}{$where}{$having}";
-        return $this->getTable()->getDB()->query($sql, $params);
     }
 
     /**
@@ -143,25 +185,12 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
-     * Load the records for this record set
-     */
-    private function load()
-    {
-        $result = $this->query();
-        $this->records = array();
-        while ($record = $this->getTable()->getDB()->fetchObject($result, 'jamend\Selective\Record', array($this->getTable()))) {
-            $this->records[$record->getID()] = $record;
-        }
-        $this->dirty == false;
-    }
-
-    /**
      * Get the first record from this record set
      * @return Record
      */
     public function first()
     {
-        if ($this->isDirty()) $this->load();
+        $this->load();
         reset($this->records);
         return current($this->records);
     }
@@ -174,7 +203,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function count()
     {
-        if ($this->isDirty()) $this->load();
+        $this->load();
         return count($this->records);
     }
 
@@ -185,7 +214,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function offsetExists($offset)
     {
-        if ($this->isDirty()) $this->load();
+        $this->load();
         return isset($this->records[$offset]);
     }
 
@@ -196,7 +225,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function offsetGet($offset)
     {
-        if ($this->isDirty()) $this->load();
+        $this->load();
         return isset($this->records[$offset]) ? $this->records[$offset] : null;
     }
 
@@ -207,7 +236,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function offsetSet($offset, $value)
     {
-        if ($this->isDirty()) $this->load();
+        $this->load();
         return $this->records[$offset] = $value;
     }
 
@@ -226,7 +255,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function getIterator()
     {
-        if ($this->isDirty()) $this->load();
+        $this->load();
         return new \ArrayIterator($this->records);
     }
 }

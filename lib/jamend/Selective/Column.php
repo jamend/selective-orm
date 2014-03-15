@@ -10,6 +10,7 @@ namespace jamend\Selective;
 class Column
 {
     private $table;
+    private $driver;
     private $name;
     private $default = null;
     private $isPrimaryKey;
@@ -19,11 +20,12 @@ class Column
     private $options = array();
 
     /**
-     * @param \jamend\ORM\Table $table
+     * @param \jamend\Selective\Table $table
      */
-    public function __construct($table)
+    public function __construct(\jamend\Selective\Table $table)
     {
         $this->table = $table;
+        $this->driver = $table->getDriver();
     }
 
     /**
@@ -33,6 +35,15 @@ class Column
     public function getTable()
     {
         return $this->table;
+    }
+
+    /**
+     * Get the driver
+     * @return \jamend\Selective\Driver
+     */
+    public function getDriver()
+    {
+        return $this->driver;
     }
 
     /**
@@ -157,7 +168,7 @@ class Column
 
     /**
      * Get enum/set options
-     * @return array
+     * @return string[]
      */
     public function getOptions()
     {
@@ -166,7 +177,7 @@ class Column
 
     /**
      * Set enum/set options
-     * @param array $options
+     * @param string[] $options
      * @return Column fluent interface
      */
     public function setOptions($options)
@@ -181,7 +192,7 @@ class Column
      */
     public function getSQLExpression()
     {
-        return $this->getTable()->getDB()->getColumnSQLExpression($this);
+        return $this->getDriver()->getColumnSQLExpression($this);
     }
 
     /**
@@ -191,7 +202,7 @@ class Column
      */
     public function getColumnDenormalizedValue($value)
     {
-        return $this->getTable()->getDB()->getColumnDenormalizedValue($this, $value);
+        return $this->getDriver()->getColumnDenormalizedValue($this, $value);
     }
 
     /**
@@ -200,7 +211,7 @@ class Column
      */
     public function getFullIdentifier()
     {
-        return $this->getTable()->getDB()->getColumnFullIdentifier($this);
+        return $this->getDriver()->getColumnFullIdentifier($this);
     }
 
     /**
@@ -209,6 +220,6 @@ class Column
      */
     public function getBaseIdentifier()
     {
-        return $this->getTable()->getDB()->getColumnBaseIdentifier($this);
+        return $this->getDriver()->getColumnBaseIdentifier($this);
     }
 }

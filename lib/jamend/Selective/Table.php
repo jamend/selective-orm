@@ -9,24 +9,41 @@ namespace jamend\Selective;
 class Table extends RecordSet
 {
     private $name;
-    private $db;
+    /**
+     * @var Database
+     */
+    private $database;
     public $columns = array();
     public $primaryKeys = array();
     public $foreignKeys = array();
     public $relatedTables = array();
     public $constraints = array();
+    /**
+     * @var Driver
+     */
+    private $driver;
 
     /**
      * Get a table to match the one with the given name in the database
      * @param string $name
-     * @param DB $db
+     * @param Database $database
      */
-    public function __construct($name, $db)
+    public function __construct($name, Database $database)
     {
         $this->name = $name;
-        $this->db = $db;
+        $this->database = $database;
+        $this->driver = $database->getDriver();
 
         parent::__construct($this);
+    }
+
+    /**
+     * Get the driver
+     * @return \jamend\Selective\Driver
+     */
+    public function getDriver()
+    {
+        return $this->driver;
     }
 
     /**
@@ -44,7 +61,7 @@ class Table extends RecordSet
      */
     public function getFullIdentifier()
     {
-        return $this->getDB()->getTableFullIdentifier($this);
+        return $this->getDriver()->getTableFullIdentifier($this);
     }
 
     /**
@@ -53,7 +70,7 @@ class Table extends RecordSet
      */
     public function getBaseIdentifier()
     {
-        return $this->getDB()->getTableBaseIdentifier($this);
+        return $this->getDriver()->getTableBaseIdentifier($this);
     }
 
     /**
@@ -67,16 +84,16 @@ class Table extends RecordSet
 
     /**
      * Get this table's database
-     * @return DB
+     * @return Database
      */
-    public function getDB()
+    public function getDatabase()
     {
-        return $this->db;
+        return $this->database;
     }
 
     /**
      * Get an array of this table's columns
-     * @return array
+     * @return Column[]
      */
     public function getColumns()
     {
@@ -84,8 +101,17 @@ class Table extends RecordSet
     }
 
     /**
+     * Get a column by name
+     * @return Column
+     */
+    public function getColumn($name)
+    {
+        return $this->columns[$name];
+    }
+
+    /**
      * Get an array of this table's primary keys
-     * @return array
+     * @return string[]
      */
     public function getPrimaryKeys()
     {
@@ -94,7 +120,7 @@ class Table extends RecordSet
 
     /**
      * Get an array of this table's foreign keys
-     * @return array
+     * @return array[]
      */
     public function getForeignKeys()
     {

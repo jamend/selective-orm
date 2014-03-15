@@ -23,6 +23,7 @@ class Record
         $this->_meta['table'] = $table;
         $this->_meta['exists'] = $exists;
         $this->_meta['existed'] = $exists;
+        $this->_meta['driver'] = $table->getDriver();
         foreach ($table->getForeignKeys() as $localColumn => $foreignKey) {
             $constraint = $this->getTable()->constraints[$foreignKey];
             if (isset($this->{$localColumn})) {
@@ -63,6 +64,15 @@ class Record
     }
 
     /**
+     * Get the driver
+     * @return \jamend\Selective\Driver
+     */
+    public function getDriver()
+    {
+        return $this->_meta['driver'];
+    }
+
+    /**
      * Get the ID of this record; for a multiple-primary key table, the PK
      * values are joined by commas
      * @return string
@@ -83,8 +93,8 @@ class Record
      */
     public function getRelatedTable($tableName)
     {
-        if ($this->getTable()->getDB()->hasTable($tableName)) {
-            $relatedTable = $this->getTable()->getDB()->getTable($tableName);
+        if ($this->getTable()->getDatabase()->hasTable($tableName)) {
+            $relatedTable = $this->getTable()->getDatabase()->getTable($tableName);
             if (isset($relatedTable->relatedTables[$this->getTable()->getName()])) {
                 $constraintName = $relatedTable->relatedTables[$this->getTable()->getName()];
                 $constraint = $relatedTable->constraints[$constraintName];
@@ -114,7 +124,7 @@ class Record
         if (isset($this->_meta['foreignRecords'][$columnName])) {
             $constraintName = $this->getTable()->getForeignKeys()[$columnName];
             $constraint = $this->getTable()->constraints[$constraintName];
-            $relatedTable = $this->getTable()->getDB()->getTable($constraint['relatedTable']);
+            $relatedTable = $this->getTable()->getDatabase()->getTable($constraint['relatedTable']);
 
             for ($i = 0; $i < count($constraint['localColumns']); $i++) {
                 $localColumn = $relatedTable->getColumns()[$constraint['localColumns'][$i]];
@@ -152,8 +162,8 @@ class Record
      */
     public function hasRelatedTable($tableName)
     {
-        if ($this->getTable()->getDB()->hasTable($tableName)) {
-            $relatedTable = $this->getTable()->getDB()->getTable($tableName);
+        if ($this->getTable()->getDatabase()->hasTable($tableName)) {
+            $relatedTable = $this->getTable()->getDatabase()->getTable($tableName);
             return isset($relatedTable->relatedTables[$this->getTable()->getName()]);
         } else {
             return false;
@@ -181,22 +191,6 @@ class Record
     }
 
     /**
-     * Get the WHERE clause to identify this record by its primary key values
-     * @param &array $params array will to which prepared statement bind
-     *     parameters will be added
-     */
-    private function getIdentifyingWhereClause(&$params)
-    {
-        $keyCriteria = '';
-        foreach ($this->getTable()->getPrimaryKeys() as $columnName) {
-            $column = $this->getTable()->getColumns()[$columnName];
-            $keyCriteria .= " AND {$column->getBaseIdentifier()} = ?";
-            $params[] = $this->{$columnName};
-        }
-        return substr($keyCriteria, 5); // remove first ' AND '
-    }
-
-    /**
      * Saves this record in the table; This will result in an INSERT or UPDATE
      * query based of if this record already exists
      * @return boolean True if a change was made to the database
@@ -204,62 +198,13 @@ class Record
     public function save()
     {
         if ($this->exists()) {
-            $affectedRows = $this->update();
+            $affectedRows = $this->getDriver()->updateRecord($this);
         } else {
-            $affectedRows = $this->insert();
+            $affectedRows = $this->getDriver()->insertRecord($this);
         }
 
         $this->_meta['exists'] = $affectedRows !== false;
         return $this->_meta['exists'];
-    }
-
-    /**
-     * Update the existing record in the database
-     * @return int number of affected rows, or false
-     */
-    private function update()
-    {
-        $params = array();
-
-        // Build an update query for an existing record
-        $update = '';
-        foreach ($this->getTable()->getColumns() as $columnName => $column) {
-            $update .= ", {$column->getBaseIdentifier()} = ?";
-            $params[] = $column->getColumnDenormalizedValue($this->{$columnName});
-        }
-        $update = substr($update, 2); // remove first ', '
-
-        $keyCriteria = $this->getIdentifyingWhereClause($params);
-
-        return $this->getTable()->getDB()->executeUpdate(
-            "UPDATE {$this->getTable()->getFullIdentifier()} SET {$update} WHERE {$keyCriteria}",
-            $params
-        );
-    }
-
-    /**
-     * Insert the record into the database
-     * @return int number of affected rows, or false
-     */
-    private function insert()
-    {
-        $params = array();
-
-        // Build an insert query for a new record
-        $fields = '';
-        $values = '';
-        foreach ($this->getTable()->getColumns() as $columnName => $column) {
-            $fields .= ", {$column->getBaseIdentifier()}";
-            $values .= ', ?';
-            $params[] = $column->getColumnDenormalizedValue($this->{$columnName});
-        }
-        $fields = substr($fields, 2); // remove first ', '
-        $values = substr($values, 2); // remove first ', '
-
-        return $this->getTable()->getDB()->executeUpdate(
-            "INSERT INTO {$this->getTable()->getFullIdentifier()} ({$fields}) VALUES ({$values})",
-            $params
-        );
     }
 
     /**
@@ -269,10 +214,18 @@ class Record
     public function delete()
     {
         $params = array();
-        $keyCriteria = $this->getIdentifyingWhereClause($params);
 
-        $affectedRows = $this->getTable()->getDB()->executeUpdate("DELETE FROM {$this->getTable()->getFullIdentifier()} WHERE {$keyCriteria}", $params);
+        $affectedRows = $this->getDriver()->deleteRecord($this);
         $this->_meta['exists'] = $affectedRows === false && $this->_meta['exists'];
         return !$this->_meta['exists'];
+    }
+
+    /**
+     * Use the primary key values as this record's string representation
+     * @return string
+     */
+    public function __toString()
+    {
+        return (string) $this->getID();
     }
 }

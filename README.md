@@ -7,11 +7,13 @@ Selective is (for now) a database abstraction layer that simplifies working with
 
 Connecting to a database
 ```php
-// first argument is the DB implementation class name
-// second argument is the parameter array for the DB implementation; each item will call a corresponding setter
-$db = \jamend\Selective\DB::loadDB(
-	'PDOMySQL', // implementation class
-	['dbname' => 'sample', 'host' => 'localhost', 'username' => '...', 'password' => '...'] // PDOMySQL parameters
+// first argument is the database name
+// second argument is the driver implementation class name
+// third argument is the parameter array for the driver
+$db = new \jamend\Selective\Database(
+	'sample',
+	'PDO\MySQL', // driver class
+	['host' => 'localhost', 'username' => '...', 'password' => '...'] // PDO\MySQL parameters
 );
 ```
 

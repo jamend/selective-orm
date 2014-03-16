@@ -77,7 +77,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
         $params = func_get_args();
         $criteria = array_shift($params);
         $recordSet = $this->openRecordSet();
-        $recordSet->query->addHaving($criteria, $params);
+        $recordSet->query->addWhere($criteria, $params);
         return $recordSet;
     }
 

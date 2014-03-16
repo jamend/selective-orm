@@ -297,8 +297,12 @@ abstract class PDO implements \jamend\Selective\Driver
         // Build an insert query for a new record
         $fields = '';
         $values = '';
+        $autoIncrementColumn = null;
         foreach ($record->getTable()->getColumns() as $columnName => $column) {
-            if ($column->isAutoIncrement()) continue;
+            if ($column->isAutoIncrement()) {
+                $autoIncrementColumn = $columnName;
+                continue;
+            }
             $fields .= ", {$column->getBaseIdentifier()}";
             $values .= ', ?';
             $params[] = $column->getColumnDenormalizedValue($record->{$columnName});
@@ -306,10 +310,16 @@ abstract class PDO implements \jamend\Selective\Driver
         $fields = substr($fields, 2); // remove first ', '
         $values = substr($values, 2); // remove first ', '
 
-        return $this->executeUpdate(
+        $result = $this->executeUpdate(
             "INSERT INTO {$record->getTable()->getFullIdentifier()} ({$fields}) VALUES ({$values})",
             $params
         );
+
+        if ($result) {
+            $record->{$autoIncrementColumn} = $this->lastInsertID();
+        }
+
+        return $result;
     }
 
     /**

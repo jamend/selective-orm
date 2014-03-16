@@ -185,7 +185,119 @@ abstract class PDO implements \jamend\Selective\Driver
     }
 
     /**
-     * Get a table's records for the given query
+     * Build SQL column list
+     * @param \jamend\Selective\Table $table
+     * @param \jamend\Selective\Query $query
+     * @param unknown $params
+     * @return string
+     */
+    protected function buildColumnList(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    {
+        $columns = '';
+        foreach ($table->getColumns() as $columnName => $column) {
+            $columns .= ", {$column->getSQLExpression()}";
+        }
+        return substr($columns, 2); // remove first ', '
+    }
+
+    /**
+     * Build SQL WHERE clause
+     * @param \jamend\Selective\Table $table
+     * @param \jamend\Selective\Query $query
+     * @param unknown $params
+     * @return string
+     */
+    protected function buildWhereClause(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    {
+        $where = '';
+        foreach ($query->getWhere() as $condition) {
+            $where .= ' AND (' . $condition[0] . ')';
+            if (!empty($condition[1])) $params = array_merge($params, $condition[1]);
+        }
+        if ($where) {
+            return ' WHERE ' . substr($where, 5); // replace first AND with WHERE
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * Build SQL HAVING clause
+     * @param \jamend\Selective\Table $table
+     * @param \jamend\Selective\Query $query
+     * @param unknown $params
+     * @return string
+     */
+    protected function buildHavingClause(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    {
+        $having = '';
+        foreach ($query->getHaving() as $havingClause) {
+            $having .= ' AND (' . $havingClause[0] . ')';
+            if (!empty($havingClause[1])) $params = array_merge($params, $havingClause[1]);
+        }
+        if ($having) {
+            return ' HAVING ' . substr($having, 5); // replace first AND with HAVING
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * Build SQL ORDER BY clause
+     * @param \jamend\Selective\Table $table
+     * @param \jamend\Selective\Query $query
+     * @param &array $params
+     * @return string
+     */
+    protected function buildOrderByClause(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    {
+        $orderBy = '';
+        foreach ($query->getOrderBy() as $fieldAndDirection) {
+            $orderBy .= ', ' . $fieldAndDirection[0] . ' ' . $fieldAndDirection[1];
+        }
+        if ($orderBy) {
+            $orderBy = ' ORDER BY ' . substr($orderBy, 2); // remove first ", "
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * Build SQL LIMIT clause
+     * @param \jamend\Selective\Table $table
+     * @param \jamend\Selective\Query $query
+     * @param &array $params
+     * @return string
+     */
+    protected function buildLimitClause(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    {
+        if ($limitClause = $query->getLimit()) {
+            return ' LIMIT ' . $limitClause[1] . ', ' . $limitClause[0];
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * Generate the SQL query to get a Table's records for the given Query
+     * @param \jamend\Selective\Table $table
+     * @param \jamend\Selective\Query $query
+     * @param &array $params
+     */
+    public function buildSQL(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    {
+        $columns = $this->buildColumnList($table, $query, $params);
+        $where = $this->buildWhereClause($table, $query, $params);
+        $having = $this->buildHavingClause($table, $query, $params);
+        $orderBy = $this->buildOrderByClause($table, $query, $params);
+        $limit = $this->buildLimitClause($table, $query, $params);
+
+        // assemble query
+        return "SELECT {$columns} FROM {$table->getFullIdentifier()}{$where}{$having}{$orderBy}{$limit}";
+    }
+
+    /**
+     * Get a Table's records for the given Query
      * @param \jamend\Selective\Table $table
      * @param \jamend\Selective\Query $query
      * @return \jamend\Selective\Record[]
@@ -194,44 +306,7 @@ abstract class PDO implements \jamend\Selective\Driver
     {
         $params = array();
 
-        $columns = '';
-        // Add each column to the query
-        foreach ($table->getColumns() as $columnName => $column) {
-            $columns .= ", {$column->getSQLExpression()}";
-        }
-        $columns = substr($columns, 2); // remove first ', '
-
-        // build where clause
-        $where = '';
-        foreach ($query->getWhere() as $condition) {
-            $where .= ' AND (' . $condition[0] . ')';
-            if (!empty($condition[1])) $params = array_merge($params, $condition[1]);
-        }
-        if ($where) $where = ' WHERE ' . substr($where, 5); // replace first AND with WHERE
-
-        // build having clause
-        $having = '';
-        foreach ($query->getHaving() as $havingClause) {
-            $having .= ' AND (' . $havingClause[0] . ')';
-            if (!empty($havingClause[1])) $params = array_merge($params, $havingClause[1]);
-        }
-        if ($having) $having = ' HAVING ' . substr($having, 5); // replace first AND with HAVING
-
-        // build order by clause
-        $orderBy = '';
-        foreach ($query->getOrderBy() as $fieldAndDirection) {
-            $orderBy .= ', ' . $fieldAndDirection[0] . ' ' . $fieldAndDirection[1];
-        }
-        if ($orderBy) $orderBy = ' ORDER BY ' . substr($orderBy, 2); // remove first ", "
-
-        // build limit clause
-        $limit = '';
-        if ($limitClause = $query->getLimit()) {
-            $limit = ' LIMIT ' . $limitClause[1] . ', ' . $limitClause[0];
-        }
-
-        // assemble query
-        $sql = "SELECT {$columns} FROM {$table->getFullIdentifier()}{$where}{$having}{$orderBy}{$limit}";
+        $sql = $this->buildSQL($table, $query, $params);
 
         $result = $this->query($sql, $params);
 
@@ -315,7 +390,7 @@ abstract class PDO implements \jamend\Selective\Driver
             $params
         );
 
-        if ($result) {
+        if ($result && $autoIncrementColumn) {
             $record->{$autoIncrementColumn} = $this->lastInsertID();
         }
 

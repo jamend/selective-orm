@@ -100,6 +100,54 @@ class Sqlsrv extends \jamend\Selective\Driver\PDO
     }
 
     /**
+     * Generate the SQL query to get a Table's records for the given Query
+     * @param \jamend\Selective\Table $table
+     * @param \jamend\Selective\Query $query
+     * @param &array $params
+     */
+    public function buildSQL(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    {
+        $columns = $this->buildColumnList($table, $query, $params);
+        $where = $this->buildWhereClause($table, $query, $params);
+        $having = $this->buildHavingClause($table, $query, $params);
+
+        $orderBy = $this->buildOrderByClause($table, $query, $params);
+
+        if ($limitClause = $query->getLimit()) {
+            if (empty($limitClause[1])) {
+                $sql = "SELECT TOP {$limitClause[0]} {$columns} FROM {$table->getFullIdentifier()}{$where}{$having}{$orderBy}";
+            } else {
+                $primaryKeys = '';
+                $outerColumns = '';
+                foreach ($table->getColumns() as $column) {
+                    if ($column->isPrimaryKey()) {
+                        $primaryKeys .= ", {$column->getSQLExpression()}";
+                    }
+                    $outerColumns .= ", {$column->getBaseIdentifier()}";
+                }
+                $primaryKeys = substr($primaryKeys, 2); // remove first ', '
+                $outerColumns = substr($outerColumns, 2); // remove first ', '
+                $data = "SELECT {$columns}, ROW_NUMBER() OVER (ORDER BY {$primaryKeys}) AS [_rowCount] FROM {$table->getFullIdentifier()}{$where}{$having}{$orderBy}";
+
+                $to = $limitClause[0] + $limitClause[1];
+                $sql = <<<SQL
+;WITH DATA AS (
+	{$data}
+)
+SELECT {$outerColumns}
+FROM DATA
+WHERE [_rowCount] BETWEEN {$limitClause[1]} AND {$to}
+{$orderBy}
+SQL;
+            }
+        } else {
+            $sql = "SELECT {$columns} FROM {$table->getFullIdentifier()}{$where}{$having}{$orderBy}";
+        }
+
+        return $sql;
+    }
+
+    /**
      * Get a list of names of the table in a database
      * @param \jamend\Selective\Database $database
      * @return string[]

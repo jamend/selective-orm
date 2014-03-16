@@ -9,18 +9,13 @@ namespace jamend\Selective\Driver\PDO;
  */
 class MySQL extends \jamend\Selective\Driver\PDO
 {
-    const CREATE_TABLE_SQL_COLUMNS_REGEX = '/  `(?<name>[^`]+?)` (?<type>[^\(]+?)(?:\((?<length>[^\)]+)\))?(?: unsigned)?(?: CHARACTER SET [a-z0-9\-_]+)?(?: COLLATE [a-z0-9\-_]+)?(?<allowNull> NOT NULL)?(?: DEFAULT (?<default>.+?))?(?: AUTO_INCREMENT)? ?(?:COMMENT \'[^\']*\')?,?\s/';
+    const CREATE_TABLE_SQL_COLUMNS_REGEX = '/  `(?<name>[^`]+?)` (?<type>[^\(]+?)(?:\((?<length>[^\)]+)\))?(?: unsigned)?(?: CHARACTER SET [a-z0-9\-_]+)?(?: COLLATE [a-z0-9\-_]+)?(?<allowNull> NOT NULL)?(?: DEFAULT (?<default>.+?))?(?<autoIncrement> AUTO_INCREMENT)? ?(?:COMMENT \'[^\']*\')?,?\s/';
     const CREATE_TABLE_SQL_PRIMARY_KEY_REGEX = '/  PRIMARY KEY \(([^\)]+?)\),?/';
     const CREATE_TABLE_SQL_CONSTRAINT_REGEX = '/  CONSTRAINT `(?P<name>[^`]+?)` FOREIGN KEY \((?P<localColumns>[^)]+?)\) REFERENCES `?(?P<relatedTable>[^`]*?)`? \((?P<relatedColumns>[^)]+?)\)(?: ON DELETE [A-Z]+)?(?: ON UPDATE [A-Z]+)?,?/';
 
     private $host;
     private $username;
     private $password;
-    private $tables = array();
-    /**
-     * @var \PDO
-     */
-    protected $pdo;
 
     /**
      * Load connection parameters
@@ -43,43 +38,13 @@ class MySQL extends \jamend\Selective\Driver\PDO
     }
 
     /**
-     * Get the full quoted identifier including database name
-     * @param \jamend\Selective\Table $table
+     * Quote an object identifier
+     * @param string $objectIdentifier
      * @return string
      */
-    public function getTableFullIdentifier(\jamend\Selective\Table $table)
+    public function quoteObjectIdentifier($objectIdentifier)
     {
-        return "`{$table->getDatabase()->getName()}`.{$this->getTableBaseIdentifier($table)}";
-    }
-
-    /**
-     * Get the quoted identifier for the table name
-     * @param Table $table
-     * @return string
-     */
-    public function getTableBaseIdentifier(\jamend\Selective\Table $table)
-    {
-        return "`{$table->getDatabase()->getPrefix()}{$table->getName()}`";
-    }
-
-    /**
-     * Get the full quoted identifier including database/table name
-     * @param Column $column
-     * @return string
-     */
-    public function getColumnFullIdentifier(\jamend\Selective\Column $column)
-    {
-        return "{$this->getTableFullIdentifier($column->getTable())}.{$this->getColumnBaseIdentifier($column)}";
-    }
-
-    /**
-     * Get the quoted identifier for the column name
-     * @param Column $column
-     * @return string
-     */
-    public function getColumnBaseIdentifier(\jamend\Selective\Column $column)
-    {
-        return "`{$column->getName()}`";
+        return "`{$objectIdentifier}`";
     }
 
     /**
@@ -121,23 +86,6 @@ class MySQL extends \jamend\Selective\Driver\PDO
             default:
                 return $value;
                 break;
-        }
-    }
-
-    /**
-     * Quote a value for use in SQL statements
-     * @param mixed $value
-     */
-    public function quote($value)
-    {
-        if ($value === null) {
-            return 'null';
-        } else if (is_bool($value)) {
-            return $value ? 1 : 0;
-        } else if (is_numeric($value) && $value === strval(intval($value))) {
-            return intval($value);
-        } else {
-            return '"' . addslashes($value) . '"';
         }
     }
 
@@ -186,6 +134,7 @@ class MySQL extends \jamend\Selective\Driver\PDO
                     ->setType($columnInfo['type'])
                     ->setDefault(isset($columnInfo['default']) ? $columnInfo['default'] : null)
                     ->setAllowNull(!isset($columnInfo['allowNull']) || $columnInfo['allowNull'] === 'NULL')
+                    ->setAutoIncrement(!empty($columnInfo['autoIncrement']))
                 ;
 
                 if ($column->getType() == 'set' || $column->getType() == 'enum') {

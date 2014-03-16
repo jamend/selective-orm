@@ -3,7 +3,6 @@ namespace jamend\Selective;
 
 /**
  * Represents a table column
- * FIXME public properties should be replaced with getters/setters
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
@@ -14,6 +13,7 @@ class Column
     private $name;
     private $default = null;
     private $isPrimaryKey;
+    private $isAutoIncrement = false;
     private $allowNull;
     private $type;
     private $length;
@@ -103,6 +103,26 @@ class Column
     public function setPrimaryKey($isPrimaryKey)
     {
         $this->isPrimaryKey = $isPrimaryKey;
+        return $this;
+    }
+
+    /**
+     * Check if the column is auto-incrementing
+     * @return bool
+     */
+    public function isAutoIncrement()
+    {
+        return $this->isAutoIncrement;
+    }
+
+    /**
+     * Set if the column is auto-incrementing
+     * @param bool $isAutoIncrement
+     * @return Column fluent interface
+     */
+    public function setAutoIncrement($isAutoIncrement)
+    {
+        $this->isAutoIncrement = $isAutoIncrement;
         return $this;
     }
 

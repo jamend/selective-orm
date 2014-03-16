@@ -13,6 +13,71 @@ abstract class PDO implements \jamend\Selective\Driver
      * @var \PDO
      */
     protected $pdo;
+    protected $tables = array();
+
+    /**
+     * Get the full quoted identifier including database name
+     * @param \jamend\Selective\Table $table
+     * @return string
+     */
+    public function getTableFullIdentifier(\jamend\Selective\Table $table)
+    {
+        return "{$this->quoteObjectIdentifier($table->getDatabase()->getName())}.{$this->getTableBaseIdentifier($table)}";
+    }
+
+    /**
+     * Get the quoted identifier for the table name
+     * @param Table $table
+     * @return string
+     */
+    public function getTableBaseIdentifier(\jamend\Selective\Table $table)
+    {
+        return $this->quoteObjectIdentifier($table->getDatabase()->getPrefix() . $table->getName());
+    }
+
+    /**
+     * Get the full quoted identifier including database/table name
+     * @param Column $column
+     * @return string
+     */
+    public function getColumnFullIdentifier(\jamend\Selective\Column $column)
+    {
+        return "{$this->getTableFullIdentifier($column->getTable())}.{$this->getColumnBaseIdentifier($column)}";
+    }
+
+    /**
+     * Get the quoted identifier for the column name
+     * @param Column $column
+     * @return string
+     */
+    public function getColumnBaseIdentifier(\jamend\Selective\Column $column)
+    {
+        return $this->quoteObjectIdentifier($column->getName());
+    }
+
+    /**
+     * Quote an object identifier
+     * @param string $objectIdentifier
+     * @return string
+     */
+    public abstract function quoteObjectIdentifier($objectIdentifier);
+
+    /**
+     * Quote a value for use in SQL statements
+     * @param mixed $value
+     */
+    public function quote($value)
+    {
+        if ($value === null) {
+            return 'null';
+        } else if (is_bool($value)) {
+            return $value ? 1 : 0;
+        } else if (is_numeric($value) && $value === strval(intval($value))) {
+            return intval($value);
+        } else {
+            return '"' . addslashes($value) . '"';
+        }
+    }
 
     /**
      * Get the last auto-increment ID value after an insert statement
@@ -27,15 +92,35 @@ abstract class PDO implements \jamend\Selective\Driver
      * Get an array of all rows of a statement as associative arrays
      * @param string $sql
      * @param array $params
+     * @param string $indexField
+     * @param string $groupField
      * @return array[]
      */
-    protected function fetchAll($sql, $params = null)
+    protected function fetchAll($sql, $params = array(), $indexField = null, $groupField = null)
     {
         $stmt = $this->query($sql, $params);
         $rows = array();
         if ($stmt) {
-            while (($row = $stmt->fetch(\PDO::FETCH_ASSOC)) !== false) {
-                $rows[] = $row;
+            if ($groupField === null) {
+                if ($indexField === null) {
+                    while (($row = $stmt->fetch(\PDO::FETCH_ASSOC)) !== false) {
+                        $rows[] = $row;
+                    }
+                } else {
+                    while (($row = $stmt->fetch(\PDO::FETCH_ASSOC)) !== false) {
+                        $rows[$row[$indexField]] = $row;
+                    }
+                }
+            } else {
+                if ($indexField === null) {
+                    while (($row = $stmt->fetch(\PDO::FETCH_ASSOC)) !== false) {
+                        $rows[$row[$groupField]][] = $row;
+                    }
+                } else {
+                    while (($row = $stmt->fetch(\PDO::FETCH_ASSOC)) !== false) {
+                        $rows[$row[$groupField]][$row[$indexField]] = $row;
+                    }
+                }
             }
         }
         return $rows;
@@ -186,6 +271,7 @@ abstract class PDO implements \jamend\Selective\Driver
         // Build an update query for an existing record
         $update = '';
         foreach ($record->getTable()->getColumns() as $columnName => $column) {
+            if ($column->isAutoIncrement()) continue;
             $update .= ", {$column->getBaseIdentifier()} = ?";
             $params[] = $column->getColumnDenormalizedValue($record->{$columnName});
         }
@@ -212,6 +298,7 @@ abstract class PDO implements \jamend\Selective\Driver
         $fields = '';
         $values = '';
         foreach ($record->getTable()->getColumns() as $columnName => $column) {
+            if ($column->isAutoIncrement()) continue;
             $fields .= ", {$column->getBaseIdentifier()}";
             $values .= ', ?';
             $params[] = $column->getColumnDenormalizedValue($record->{$columnName});

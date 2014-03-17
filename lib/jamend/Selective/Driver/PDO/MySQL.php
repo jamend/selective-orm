@@ -76,16 +76,20 @@ class MySQL extends \jamend\Selective\Driver\PDO
      */
     public function getColumnDenormalizedValue(\jamend\Selective\Column $column, $value)
     {
-        switch ($column->getType()) {
-            case 'date':
-                return date('Y-m-d', $value);
-                break;
-            case 'datetime':
-                return date('Y-m-d H:i:s', $value);
-                break;
-            default:
-                return $value;
-                break;
+        if ($value === null) {
+            return null;
+        } else {
+            switch ($column->getType()) {
+                case 'date':
+                    return date('Y-m-d', $value);
+                    break;
+                case 'datetime':
+                    return date('Y-m-d H:i:s', $value);
+                    break;
+                default:
+                    return $value;
+                    break;
+            }
         }
     }
 

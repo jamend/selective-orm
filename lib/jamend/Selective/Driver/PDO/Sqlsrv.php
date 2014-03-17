@@ -67,7 +67,7 @@ class Sqlsrv extends \jamend\Selective\Driver\PDO
         switch ($column->getType()) {
             case 'date':
             case 'datetime':
-                return "TIME_TO_SEC(TIMEDIFF({$column->getBaseIdentifier()}, '1970-01-01 00:00:00')) AS {$column->getName()}";
+                return "DATEDIFF(SECOND,{d '1970-01-01'}, {$column->getBaseIdentifier()}) AS {$column->getName()}";
                 break;
             case 'set':
                 return "{$column->getBaseIdentifier()} + 0 AS {$column->getName()}";
@@ -86,16 +86,20 @@ class Sqlsrv extends \jamend\Selective\Driver\PDO
      */
     public function getColumnDenormalizedValue(\jamend\Selective\Column $column, $value)
     {
-        switch ($column->getType()) {
-            case 'date':
-                return date('Y-m-d', $value);
-                break;
-            case 'datetime':
-                return date('Y-m-d H:i:s', $value);
-                break;
-            default:
-                return $value;
-                break;
+        if ($value === null) {
+            return null;
+        } else {
+            switch ($column->getType()) {
+                case 'date':
+                    return date('Ymd', $value);
+                    break;
+                case 'datetime':
+                    return date('Y-m-d\TH:i:s', $value);
+                    break;
+                default:
+                    return $value;
+                    break;
+            }
         }
     }
 

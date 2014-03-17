@@ -204,7 +204,8 @@ FROM
 WHERE
 	columns.object_id = ?
 SQL
-                , array($objectId)
+                ,
+                array($objectId)
             );
 
             $constraints = $this->fetchAll(<<<SQL
@@ -229,7 +230,8 @@ ORDER BY
 	foreign_keys.parent_object_id,
 	foreign_keys.object_id
 SQL
-                , array($objectId),
+                ,
+                array($objectId),
                 null,
                 'constraintName'
             );
@@ -240,10 +242,18 @@ SQL
 
             foreach ($columns as $columnInfo) {
                 $column = new \jamend\Selective\Column($table);
+
+                $default = null;
+                if ($columnInfo['default'] !== null) {
+                    // we need to parse the SQL default value
+                    $defaultResult = $this->fetchAll('SELECT ' . $columnInfo['default']);
+                    $default = current(current($defaultResult));
+                }
+
                 $column
                     ->setName($columnInfo['name'])
                     ->setType($columnInfo['type'])
-                    ->setDefault($columnInfo['default'])
+                    ->setDefault($default)
                     ->setAllowNull((bool) $columnInfo['allowNull'])
                     ->setPrimaryKey((bool) $columnInfo['isPrimaryKey'])
                     ->setAutoIncrement((bool) $columnInfo['isAutoIncrement'])

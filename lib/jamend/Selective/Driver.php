@@ -43,6 +43,25 @@ interface Driver
     public function quote($value);
 
     /**
+     * Execute an update query and return the number of affected rows
+     * @param string $sql
+     * @param array $params
+     * @throws \Exception
+     * @return number of affected rows
+     */
+    public function executeUpdate($sql, $params = null);
+
+    /**
+     * Get an array of all rows of a statement as associative arrays
+     * @param string $sql
+     * @param array $params
+     * @param string $indexField
+     * @param string $groupField
+     * @return array[]
+     */
+    public function fetchAll($sql, $params = array(), $indexField = null, $groupField = null);
+
+    /**
      * Get the full quoted identifier including database name
      * @param Table $table
      * @return string

@@ -96,7 +96,7 @@ abstract class PDO implements \jamend\Selective\Driver
      * @param string $groupField
      * @return array[]
      */
-    protected function fetchAll($sql, $params = array(), $indexField = null, $groupField = null)
+    public function fetchAll($sql, $params = array(), $indexField = null, $groupField = null)
     {
         $stmt = $this->query($sql, $params);
         $rows = array();
@@ -138,17 +138,22 @@ abstract class PDO implements \jamend\Selective\Driver
         $stmt = $this->pdo->prepare($sql);
 
         // Execute and check if there was an error
-        if ($stmt->execute($params)) {
-            return $stmt;
-        } else {
-            $errorInfo = $stmt->errorInfo();
-            $errorMessage = "Query failed - SQLSTATE[{$errorInfo[0]}]";
-            if (isset($errorInfo[1])) {
-                $errorMessage .= " ({$errorInfo[1]}: {$errorInfo[2]})";
+        if ($stmt) {
+            if ($stmt->execute($params)) {
+                return $stmt;
+            } else {
+                $errorInfo = $stmt->errorInfo();
             }
-            $errorMessage .= "; SQL: \"{$sql}\"";
-            throw new \Exception($errorMessage);
+        } else {
+            $errorInfo = $this->pdo->errorInfo();
         }
+
+        $errorMessage = "Query failed - SQLSTATE[{$errorInfo[0]}]";
+        if (isset($errorInfo[1])) {
+            $errorMessage .= " ({$errorInfo[1]}: {$errorInfo[2]})";
+        }
+        $errorMessage .= "; SQL: \"{$sql}\"";
+        throw new \Exception($errorMessage);
     }
 
     /**
@@ -158,7 +163,7 @@ abstract class PDO implements \jamend\Selective\Driver
      * @throws \Exception
      * @return number of affected rows
      */
-    protected function executeUpdate($sql, $params = null)
+    public function executeUpdate($sql, $params = null)
     {
         $stmt = $this->query($sql, $params);
         return $stmt->rowCount();

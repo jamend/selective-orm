@@ -100,7 +100,7 @@ class Record
                 $constraint = $relatedTable->constraints[$constraintName];
 
                 for ($i = 0; $i < count($constraint['localColumns']); $i++) {
-                    $localColumn = $relatedTable->getColumns()[$constraint['localColumns'][$i]];
+                    $localColumn = $relatedTable->getColumn($constraint['localColumns'][$i]);
                     $foreignColumnName = $constraint['relatedColumns'][$i];
                     $relatedTable = $relatedTable->where($localColumn->getFullIdentifier() . ' = ?', $this->{$foreignColumnName});
                 }
@@ -117,7 +117,7 @@ class Record
     /**
      * Get the related record by value of the given column name
      * @param string $columnName
-     * @return Ambigous \jamend\Selective\Record|boolean
+     * @return \jamend\Selective\Record|boolean
      */
     public function getForeignRecord($columnName)
     {
@@ -125,14 +125,15 @@ class Record
             $constraintName = $this->getTable()->getForeignKeys()[$columnName];
             $constraint = $this->getTable()->constraints[$constraintName];
             $relatedTable = $this->getTable()->getDatabase()->getTable($constraint['relatedTable']);
+            $recordSet = $relatedTable;
 
             for ($i = 0; $i < count($constraint['localColumns']); $i++) {
-                $localColumn = $relatedTable->getColumns()[$constraint['localColumns'][$i]];
+                $relatedColumn = $relatedTable->getTable()->getColumn($constraint['relatedColumns'][$i]);
                 $foreignColumnName = $constraint['relatedColumns'][$i];
-                $relatedTable = $relatedTable->where($localColumn->getFullIdentifier() . ' = ?', $this->_meta['foreignRecords'][$localColumn->getName()]);
+                $recordSet = $recordSet->where($relatedColumn->getFullIdentifier() . ' = ?', $this->_meta['foreignRecords'][$constraint['localColumns'][$i]]);
             }
 
-            return $relatedTable->first();
+            return $recordSet->first();
         } else {
             return false;
         }
@@ -173,7 +174,7 @@ class Record
     /**
      * Checks if there is a related record by value of the given column name
      * @param string $columnName
-     * @return Ambigous \jamend\Selective\Record|boolean
+     * @return boolean
      */
     public function hasForeignRecord($columnName)
     {

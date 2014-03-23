@@ -25,8 +25,7 @@ class Query
 
     /**
      * Get the where conditions
-     * @param string $criteria
-     * @param array $params
+     * @return array[]
      */
     public function getWhere()
     {
@@ -35,7 +34,8 @@ class Query
 
     /**
      * Add a having condition
-     * @return array[]
+     * @param string $criteria
+     * @param array $params
      */
     public function addHaving($criteria, $params)
     {

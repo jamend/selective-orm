@@ -1,13 +1,19 @@
 <?php
 namespace jamend\Selective\Driver\PDO;
 
+use \jamend\Selective\Database;
+use \jamend\Selective\Driver;
+use \jamend\Selective\Driver\PDO;
+use \jamend\Selective\Table;
+use \jamend\Selective\Column;
+
 /**
  * Abstract lower-level database access functions like connecting, queries, and
  * fetching results
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class SQLite extends \jamend\Selective\Driver\PDO
+class SQLite extends PDO
 {
     private $file = ':memory:';
 
@@ -22,9 +28,9 @@ class SQLite extends \jamend\Selective\Driver\PDO
 
     /**
      * Connect to the database
-     * @param \jamend\Selective\Database $database
+     * @param Database $database
      */
-    public function connect(\jamend\Selective\Database $database)
+    public function connect(Database $database)
     {
         $this->pdo = new \PDO("sqlite:{$this->file}", null, null);
         $this->executeUpdate("PRAGMA foreign_keys = ON");
@@ -32,10 +38,10 @@ class SQLite extends \jamend\Selective\Driver\PDO
 
     /**
      * Get the full quoted identifier including database name
-     * @param \jamend\Selective\Table $table
+     * @param Table $table
      * @return string
      */
-    public function getTableFullIdentifier(\jamend\Selective\Table $table)
+    public function getTableFullIdentifier(Table $table)
     {
         return $this->getTableBaseIdentifier($table);
     }
@@ -55,7 +61,7 @@ class SQLite extends \jamend\Selective\Driver\PDO
      * @param Column $column
      * @return string
      */
-    public function getColumnSQLExpression(\jamend\Selective\Column $column)
+    public function getColumnSQLExpression(Column $column)
     {
         switch ($column->getType()) {
             case 'date':
@@ -77,7 +83,7 @@ class SQLite extends \jamend\Selective\Driver\PDO
      * @param mixed $value
      * @return mixed
      */
-    public function getColumnDenormalizedValue(\jamend\Selective\Column $column, $value)
+    public function getColumnDenormalizedValue(Column $column, $value)
     {
         if ($value === null) {
             return null;
@@ -98,10 +104,10 @@ class SQLite extends \jamend\Selective\Driver\PDO
 
     /**
      * Get a list of names of the table in a database
-     * @param \jamend\Selective\Database $database
+     * @param Database $database
      * @return string[]
      */
-    public function getTables(\jamend\Selective\Database $database)
+    public function getTables(Database $database)
     {
         // Cache the list of tables
         if (!isset($this->tables[$database->getName()])) {
@@ -118,19 +124,20 @@ class SQLite extends \jamend\Selective\Driver\PDO
     /**
      * Get a Table object for the given name
      * TODO table/column properties should not be public
-     * @param String $name
      * @param Database $database
-     * @return \jamend\Selective\Table
+     * @param String $name
+     * @throws \Exception
+     * @return Table
      */
-    public function getTable(\jamend\Selective\Database $database, $name)
+    public function getTable(Database $database, $name)
     {
         $columns = $this->fetchAll("PRAGMA table_info(`{$database->getPrefix()}{$name}`)");
 
         if ($columns) {
-            $table = new \jamend\Selective\Table($name, $database);
+            $table = new Table($name, $database);
 
             foreach ($columns as $columnInfo) {
-                $column = new \jamend\Selective\Column($table);
+                $column = new Column($table);
                 $column
                     ->setName($columnInfo['name'])
                     ->setType($columnInfo['type'])
@@ -154,6 +161,8 @@ class SQLite extends \jamend\Selective\Driver\PDO
                 $localColumns = array();
                 $relatedColumns = array();
 
+                $constraintName = null;
+                $mapping = null;
                 foreach ($mappings as $mapping) {
                     $localColumns[] = $mapping['from'];
                     $relatedColumns[] = $mapping['to'];

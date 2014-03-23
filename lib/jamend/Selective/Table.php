@@ -13,6 +13,9 @@ class Table extends RecordSet
      * @var Database
      */
     private $database;
+    /**
+     * @var Column[]
+     */
     public $columns = array();
     public $primaryKeys = array();
     public $foreignKeys = array();
@@ -48,7 +51,7 @@ class Table extends RecordSet
 
     /**
      * Get the table of this
-     * @return \jamend\ORM\Table
+     * @return \jamend\Selective\Table
      */
     public function getTable()
     {
@@ -102,6 +105,7 @@ class Table extends RecordSet
 
     /**
      * Get a column by name
+     * @param $name
      * @return Column
      */
     public function getColumn($name)

@@ -1,13 +1,19 @@
 <?php
 namespace jamend\Selective\Driver\PDO;
 
+use \jamend\Selective\Database;
+use \jamend\Selective\Driver;
+use \jamend\Selective\Table;
+use \jamend\Selective\Column;
+use \jamend\Selective\Query;
+
 /**
  * Abstract lower-level database access functions like connecting, queries, and
  * fetching results
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class Sqlsrv extends \jamend\Selective\Driver\PDO
+class Sqlsrv extends Driver\PDO
 {
     private $host;
     private $username;
@@ -30,19 +36,19 @@ class Sqlsrv extends \jamend\Selective\Driver\PDO
 
     /**
      * Connect to the database
-     * @param \jamend\Selective\Database $database
+     * @param Database $database
      */
-    public function connect(\jamend\Selective\Database $database)
+    public function connect(Database $database)
     {
         $this->pdo = new \PDO("sqlsrv:Server={$this->host};Database={$database->getName()}", $this->username, $this->password);
     }
 
     /**
      * Get the full quoted identifier including database name
-     * @param \jamend\Selective\Table $table
+     * @param Table $table
      * @return string
      */
-    public function getTableFullIdentifier(\jamend\Selective\Table $table)
+    public function getTableFullIdentifier(Table $table)
     {
         return "[{$table->getDatabase()->getName()}].[{$this->schema}].{$this->getTableBaseIdentifier($table)}";
     }
@@ -62,7 +68,7 @@ class Sqlsrv extends \jamend\Selective\Driver\PDO
      * @param Column $column
      * @return string
      */
-    public function getColumnSQLExpression(\jamend\Selective\Column $column)
+    public function getColumnSQLExpression(Column $column)
     {
         switch ($column->getType()) {
             case 'date':
@@ -84,7 +90,7 @@ class Sqlsrv extends \jamend\Selective\Driver\PDO
      * @param mixed $value
      * @return mixed
      */
-    public function getColumnDenormalizedValue(\jamend\Selective\Column $column, $value)
+    public function getColumnDenormalizedValue(Column $column, $value)
     {
         if ($value === null) {
             return null;
@@ -105,17 +111,18 @@ class Sqlsrv extends \jamend\Selective\Driver\PDO
 
     /**
      * Generate the SQL query to get a Table's records for the given Query
-     * @param \jamend\Selective\Table $table
-     * @param \jamend\Selective\Query $query
+     * @param Table $table
+     * @param Query $query
      * @param &array $params
+     * @return string
      */
-    public function buildSQL(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    public function buildSQL(Table $table, Query $query, &$params)
     {
-        $columns = $this->buildColumnList($table, $query, $params);
-        $where = $this->buildWhereClause($table, $query, $params);
-        $having = $this->buildHavingClause($table, $query, $params);
+        $columns = $this->buildColumnList($table);
+        $where = $this->buildWhereClause($query, $params);
+        $having = $this->buildHavingClause($query, $params);
 
-        $orderBy = $this->buildOrderByClause($table, $query, $params);
+        $orderBy = $this->buildOrderByClause($query);
 
         if ($limitClause = $query->getLimit()) {
             if (empty($limitClause[1])) {
@@ -153,10 +160,10 @@ SQL;
 
     /**
      * Get a list of names of the table in a database
-     * @param \jamend\Selective\Database $database
+     * @param Database $database
      * @return string[]
      */
-    public function getTables(\jamend\Selective\Database $database)
+    public function getTables(Database $database)
     {
         // Cache the list of tables
         if (!isset($this->tables[$database->getName()])) {
@@ -173,11 +180,12 @@ SQL;
     /**
      * Get a Table object for the given name
      * TODO table/column properties should not be public
-     * @param String $name
      * @param Database $database
-     * @return \jamend\Selective\Table
+     * @param String $name
+     * @throws \Exception
+     * @return Table
      */
-    public function getTable(\jamend\Selective\Database $database, $name)
+    public function getTable(Database $database, $name)
     {
         $objectInfo = $this->fetchAll("SELECT object_id FROM sys.objects WHERE type IN ('U ', 'V ') AND name = ?", array($name));
         if (isset($objectInfo[0]['object_id'])) {
@@ -240,12 +248,10 @@ SQL
                 'constraintName'
             );
 
-            $primaryKeys = array();
-
-            $table = new \jamend\Selective\Table($name, $database);
+            $table = new Table($name, $database);
 
             foreach ($columns as $columnInfo) {
-                $column = new \jamend\Selective\Column($table);
+                $column = new Column($table);
 
                 $default = null;
                 if ($columnInfo['default'] !== null) {
@@ -294,6 +300,7 @@ SQL
                 $localColumns = array();
                 $relatedColumns = array();
 
+                $mapping = null;
                 foreach ($mappings as $mapping) {
                     $localColumns[] = $mapping['localColumnName'];
                     $relatedColumns[] = $mapping['foreignColumnName'];

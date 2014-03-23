@@ -133,7 +133,6 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
         if ($record) {
             return $record;
         } else {
-            trace();die;
             trigger_error('Undefined property: ' . get_class($this) . '::$' . $name, E_USER_NOTICE);
             return null;
         }
@@ -237,7 +236,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     public function offsetSet($offset, $value)
     {
         $this->load();
-        return $this->records[$offset] = $value;
+        $this->records[$offset] = $value;
     }
 
     /**

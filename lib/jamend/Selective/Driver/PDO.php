@@ -1,13 +1,19 @@
 <?php
 namespace jamend\Selective\Driver;
 
+use \jamend\Selective\Driver;
+use \jamend\Selective\Table;
+use \jamend\Selective\Record;
+use \jamend\Selective\Column;
+use \jamend\Selective\Query;
+
 /**
  * Abstract lower-level database access functions like connecting, queries, and
  * fetching results
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-abstract class PDO implements \jamend\Selective\Driver
+abstract class PDO implements Driver
 {
     /**
      * @var \PDO
@@ -17,10 +23,10 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Get the full quoted identifier including database name
-     * @param \jamend\Selective\Table $table
+     * @param Table $table
      * @return string
      */
-    public function getTableFullIdentifier(\jamend\Selective\Table $table)
+    public function getTableFullIdentifier(Table $table)
     {
         return "{$this->quoteObjectIdentifier($table->getDatabase()->getName())}.{$this->getTableBaseIdentifier($table)}";
     }
@@ -30,7 +36,7 @@ abstract class PDO implements \jamend\Selective\Driver
      * @param Table $table
      * @return string
      */
-    public function getTableBaseIdentifier(\jamend\Selective\Table $table)
+    public function getTableBaseIdentifier(Table $table)
     {
         return $this->quoteObjectIdentifier($table->getDatabase()->getPrefix() . $table->getName());
     }
@@ -40,7 +46,7 @@ abstract class PDO implements \jamend\Selective\Driver
      * @param Column $column
      * @return string
      */
-    public function getColumnFullIdentifier(\jamend\Selective\Column $column)
+    public function getColumnFullIdentifier(Column $column)
     {
         return "{$this->getTableFullIdentifier($column->getTable())}.{$this->getColumnBaseIdentifier($column)}";
     }
@@ -50,7 +56,7 @@ abstract class PDO implements \jamend\Selective\Driver
      * @param Column $column
      * @return string
      */
-    public function getColumnBaseIdentifier(\jamend\Selective\Column $column)
+    public function getColumnBaseIdentifier(Column $column)
     {
         return $this->quoteObjectIdentifier($column->getName());
     }
@@ -65,6 +71,7 @@ abstract class PDO implements \jamend\Selective\Driver
     /**
      * Quote a value for use in SQL statements
      * @param mixed $value
+     * @return mixed
      */
     public function quote($value)
     {
@@ -172,6 +179,7 @@ abstract class PDO implements \jamend\Selective\Driver
     /**
      * Get a row from a statement as an associative array
      * @param \PDOStatement $stmt
+     * @return array
      */
     protected function fetchRow($stmt)
     {
@@ -183,6 +191,7 @@ abstract class PDO implements \jamend\Selective\Driver
      * @param \PDOStatement $stmt
      * @param string $className Name of class of resulting object
      * @param string $args Arguments to pass to class constructor
+     * @return object
      */
     protected function fetchObject($stmt, $className, $args = null)
     {
@@ -191,15 +200,13 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Build SQL column list
-     * @param \jamend\Selective\Table $table
-     * @param \jamend\Selective\Query $query
-     * @param unknown $params
+     * @param Table $table
      * @return string
      */
-    protected function buildColumnList(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    protected function buildColumnList(Table $table)
     {
         $columns = '';
-        foreach ($table->getColumns() as $columnName => $column) {
+        foreach ($table->getColumns() as $column) {
             $columns .= ", {$column->getSQLExpression()}";
         }
         return substr($columns, 2); // remove first ', '
@@ -207,12 +214,11 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Build SQL WHERE clause
-     * @param \jamend\Selective\Table $table
-     * @param \jamend\Selective\Query $query
-     * @param unknown $params
+     * @param Query $query
+     * @param &array $params
      * @return string
      */
-    protected function buildWhereClause(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    protected function buildWhereClause(Query $query, &$params)
     {
         $where = '';
         foreach ($query->getWhere() as $condition) {
@@ -228,12 +234,11 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Build SQL HAVING clause
-     * @param \jamend\Selective\Table $table
-     * @param \jamend\Selective\Query $query
-     * @param unknown $params
+     * @param Query $query
+     * @param &array $params
      * @return string
      */
-    protected function buildHavingClause(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    protected function buildHavingClause(Query $query, &$params)
     {
         $having = '';
         foreach ($query->getHaving() as $havingClause) {
@@ -249,19 +254,17 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Build SQL ORDER BY clause
-     * @param \jamend\Selective\Table $table
-     * @param \jamend\Selective\Query $query
-     * @param &array $params
+     * @param Query $query
      * @return string
      */
-    protected function buildOrderByClause(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    protected function buildOrderByClause(Query $query)
     {
         $orderBy = '';
         foreach ($query->getOrderBy() as $fieldAndDirection) {
             $orderBy .= ', ' . $fieldAndDirection[0] . ' ' . $fieldAndDirection[1];
         }
         if ($orderBy) {
-            $orderBy = ' ORDER BY ' . substr($orderBy, 2); // remove first ", "
+            return ' ORDER BY ' . substr($orderBy, 2); // remove first ", "
         } else {
             return '';
         }
@@ -269,12 +272,10 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Build SQL LIMIT clause
-     * @param \jamend\Selective\Table $table
-     * @param \jamend\Selective\Query $query
-     * @param &array $params
+     * @param Query $query
      * @return string
      */
-    protected function buildLimitClause(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    protected function buildLimitClause(Query $query)
     {
         if ($limitClause = $query->getLimit()) {
             return ' LIMIT ' . $limitClause[1] . ', ' . $limitClause[0];
@@ -285,17 +286,18 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Generate the SQL query to get a Table's records for the given Query
-     * @param \jamend\Selective\Table $table
-     * @param \jamend\Selective\Query $query
+     * @param Table $table
+     * @param Query $query
      * @param &array $params
+     * @return string
      */
-    public function buildSQL(\jamend\Selective\Table $table, \jamend\Selective\Query $query, &$params)
+    public function buildSQL(Table $table, Query $query, &$params)
     {
-        $columns = $this->buildColumnList($table, $query, $params);
-        $where = $this->buildWhereClause($table, $query, $params);
-        $having = $this->buildHavingClause($table, $query, $params);
-        $orderBy = $this->buildOrderByClause($table, $query, $params);
-        $limit = $this->buildLimitClause($table, $query, $params);
+        $columns = $this->buildColumnList($table);
+        $where = $this->buildWhereClause($query, $params);
+        $having = $this->buildHavingClause($query, $params);
+        $orderBy = $this->buildOrderByClause($query);
+        $limit = $this->buildLimitClause($query);
 
         // assemble query
         return "SELECT {$columns} FROM {$table->getFullIdentifier()}{$where}{$having}{$orderBy}{$limit}";
@@ -303,11 +305,11 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Get a Table's records for the given Query
-     * @param \jamend\Selective\Table $table
-     * @param \jamend\Selective\Query $query
-     * @return \jamend\Selective\Record[]
+     * @param Table $table
+     * @param Query $query
+     * @return Record[]
      */
-    public function getRecords(\jamend\Selective\Table $table, \jamend\Selective\Query $query)
+    public function getRecords(Table $table, Query $query)
     {
         $params = array();
 
@@ -324,11 +326,12 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Get the WHERE clause to identify a record by its primary key values
-     * @param \jamend\Selective\Record $record
+     * @param Record $record
      * @param &array $params array will to which prepared statement bind
      *     parameters will be added
+     * @return string
      */
-    protected function getRecordIdentifyingWhereClause(\jamend\Selective\Record $record, &$params)
+    protected function getRecordIdentifyingWhereClause(Record $record, &$params)
     {
         $keyCriteria = '';
         foreach ($record->getTable()->getPrimaryKeys() as $columnName) {
@@ -341,7 +344,7 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Update an existing record in the database
-     * @param \jamend\Selective\Record $record
+     * @param Record $record
      * @return int number of affected rows, or false
      */
     public function updateRecord($record)
@@ -367,7 +370,7 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Insert a record into the database
-     * @param \jamend\Selective\Record $record
+     * @param Record $record
      * @return int number of affected rows, or false
      */
     public function insertRecord($record)
@@ -404,7 +407,7 @@ abstract class PDO implements \jamend\Selective\Driver
 
     /**
      * Delete a record from the database
-     * @param \jamend\Selective\Record $record
+     * @param Record $record
      * @return boolean True if the record is deleted
      */
     public function deleteRecord($record)

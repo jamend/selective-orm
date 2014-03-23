@@ -20,9 +20,9 @@ class Column
     private $options = array();
 
     /**
-     * @param \jamend\Selective\Table $table
+     * @param Table $table
      */
-    public function __construct(\jamend\Selective\Table $table)
+    public function __construct(Table $table)
     {
         $this->table = $table;
         $this->driver = $table->getDriver();

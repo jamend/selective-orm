@@ -1,13 +1,18 @@
 <?php
 namespace jamend\Selective\Driver\PDO;
 
+use \jamend\Selective\Database;
+use \jamend\Selective\Driver\PDO;
+use \jamend\Selective\Table;
+use \jamend\Selective\Column;
+
 /**
  * Abstract lower-level database access functions like connecting, queries, and
  * fetching results
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class MySQL extends \jamend\Selective\Driver\PDO
+class MySQL extends PDO
 {
     const CREATE_TABLE_SQL_COLUMNS_REGEX = '/  `(?<name>[^`]+?)` (?<type>[^\(]+?)(?:\((?<length>[^\)]+)\))?(?: unsigned)?(?: CHARACTER SET [a-z0-9\-_]+)?(?: COLLATE [a-z0-9\-_]+)?(?<allowNull> NOT NULL)?(?: DEFAULT (?<default>.+?))?(?<autoIncrement> AUTO_INCREMENT)? ?(?:COMMENT \'[^\']*\')?,?\s/';
     const CREATE_TABLE_SQL_PRIMARY_KEY_REGEX = '/  PRIMARY KEY \(([^\)]+?)\),?/';
@@ -30,9 +35,9 @@ class MySQL extends \jamend\Selective\Driver\PDO
 
     /**
      * Connect to the database
-     * @param \jamend\Selective\Database $database
+     * @param Database $database
      */
-    public function connect(\jamend\Selective\Database $database)
+    public function connect(Database $database)
     {
         $this->pdo = new \PDO("mysql:host={$this->host};dbname={$database->getName()}", $this->username, $this->password);
     }
@@ -52,7 +57,7 @@ class MySQL extends \jamend\Selective\Driver\PDO
      * @param Column $column
      * @return string
      */
-    public function getColumnSQLExpression(\jamend\Selective\Column $column)
+    public function getColumnSQLExpression(Column $column)
     {
         switch ($column->getType()) {
             case 'date':
@@ -74,7 +79,7 @@ class MySQL extends \jamend\Selective\Driver\PDO
      * @param mixed $value
      * @return mixed
      */
-    public function getColumnDenormalizedValue(\jamend\Selective\Column $column, $value)
+    public function getColumnDenormalizedValue(Column $column, $value)
     {
         if ($value === null) {
             return null;
@@ -95,10 +100,10 @@ class MySQL extends \jamend\Selective\Driver\PDO
 
     /**
      * Get a list of names of the table in a database
-     * @param \jamend\Selective\Database $database
+     * @param Database $database
      * @return string[]
      */
-    public function getTables(\jamend\Selective\Database $database)
+    public function getTables(Database $database)
     {
         // Cache the list of tables
         if (!isset($this->tables[$database->getName()])) {
@@ -115,11 +120,12 @@ class MySQL extends \jamend\Selective\Driver\PDO
     /**
      * Get a Table object for the given name
      * TODO table/column properties should not be public
-     * @param String $name
      * @param Database $database
-     * @return \jamend\Selective\Table
+     * @param string $name
+     * @throws \Exception
+     * @return Table
      */
-    public function getTable(\jamend\Selective\Database $database, $name)
+    public function getTable(Database $database, $name)
     {
         $createTableInfo = $this->fetchAll("SHOW CREATE TABLE `{$database->getPrefix()}{$name}`");
         $createTableSql = $createTableInfo[0]['Create Table'];
@@ -129,10 +135,10 @@ class MySQL extends \jamend\Selective\Driver\PDO
 
         // parse columns
         if (preg_match_all(self::CREATE_TABLE_SQL_COLUMNS_REGEX, $createTableSql, $columns, PREG_SET_ORDER)) {
-            $table = new \jamend\Selective\Table($name, $database);
+            $table = new Table($name, $database);
 
             foreach ($columns as $columnInfo) {
-                $column = new \jamend\Selective\Column($table);
+                $column = new Column($table);
                 $column
                     ->setName($columnInfo['name'])
                     ->setType($columnInfo['type'])

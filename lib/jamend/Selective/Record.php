@@ -16,7 +16,7 @@ class Record
      * This class is usually instantiated by \PDOStatement::fetchObject, which
      * sets column values as properties.
      * @param Table $table
-     * @param string $exists Is this a real record, or a new one that we will probably insert later?
+     * @param bool $exists Is this a real record, or a new one that we will probably insert later?
      */
     public function __construct(Table $table, $exists = true)
     {
@@ -25,7 +25,6 @@ class Record
         $this->_meta['existed'] = $exists;
         $this->_meta['driver'] = $table->getDriver();
         foreach ($table->getForeignKeys() as $localColumn => $foreignKey) {
-            $constraint = $this->getTable()->constraints[$foreignKey];
             if (isset($this->{$localColumn})) {
                 $this->_meta['foreignRecords'][$localColumn] = $this->{$localColumn};
                 // unset the property, so that the magic __getter will be invoked
@@ -129,7 +128,6 @@ class Record
 
             for ($i = 0; $i < count($constraint['localColumns']); $i++) {
                 $relatedColumn = $relatedTable->getTable()->getColumn($constraint['relatedColumns'][$i]);
-                $foreignColumnName = $constraint['relatedColumns'][$i];
                 $recordSet = $recordSet->where($relatedColumn->getFullIdentifier() . ' = ?', $this->_meta['foreignRecords'][$constraint['localColumns'][$i]]);
             }
 
@@ -214,8 +212,6 @@ class Record
      */
     public function delete()
     {
-        $params = array();
-
         $affectedRows = $this->getDriver()->deleteRecord($this);
         $this->_meta['exists'] = $affectedRows === false && $this->_meta['exists'];
         return !$this->_meta['exists'];

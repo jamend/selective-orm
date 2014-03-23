@@ -81,7 +81,7 @@ class Database
      */
     public function setPrefix($prefix)
     {
-        return $this->prefix = $prefix;
+        $this->prefix = $prefix;
     }
 
     /**

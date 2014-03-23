@@ -106,29 +106,29 @@ interface Driver
 
     /**
      * Get a table's records for the given query
-     * @param \jamend\Selective\Table $table
-     * @param \jamend\Selective\Query $query
-     * @return \jamend\Selective\Record[]
+     * @param Table $table
+     * @param Query $query
+     * @return Record[]
      */
-    public function getRecords(\jamend\Selective\Table $table, \jamend\Selective\Query $query);
+    public function getRecords(Table $table, Query $query);
 
     /**
      * Update an existing record in the database
-     * @param \jamend\Selective\Record $record
+     * @param Record $record
      * @return int number of affected rows, or false
      */
     public function updateRecord($record);
 
     /**
      * Insert a record into the database
-     * @param \jamend\Selective\Record $record
+     * @param Record $record
      * @return int number of affected rows, or false
      */
     public function insertRecord($record);
 
     /**
      * Delete a record from the database
-     * @param \jamend\Selective\Record $record
+     * @param Record $record
      * @return boolean True if the record is deleted
      */
     public function deleteRecord($record);

@@ -39,6 +39,7 @@ interface Driver
     /**
      * Quote a value for use in SQL statements
      * @param mixed $value
+     * @return string
      */
     public function quote($value);
 

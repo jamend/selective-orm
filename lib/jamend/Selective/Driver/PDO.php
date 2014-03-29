@@ -71,14 +71,14 @@ abstract class PDO implements Driver
     /**
      * Quote a value for use in SQL statements
      * @param mixed $value
-     * @return mixed
+     * @return string
      */
     public function quote($value)
     {
         if ($value === null) {
             return 'null';
         } else if (is_bool($value)) {
-            return $value ? 1 : 0;
+            return $value ? '1' : '0';
         } else if (is_numeric($value) && $value === strval(intval($value))) {
             return intval($value);
         } else {

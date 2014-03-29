@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Tests\Selective\Mocks;
+namespace jamend\Selective\Tests\Mocks;
 
 class PDOStatement extends \PDOStatement
 {

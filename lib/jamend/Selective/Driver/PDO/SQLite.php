@@ -142,8 +142,8 @@ class SQLite extends PDO
                     ->setName($columnInfo['name'])
                     ->setType($columnInfo['type'])
                     ->setDefault($columnInfo['dflt_value'])
-                    ->setAllowNull((bool) $columnInfo['notnull'])
-                    ->setPrimaryKey((bool) $columnInfo['pk'])
+                    ->setAllowNull($columnInfo['notnull'] === '0')
+                    ->setPrimaryKey($columnInfo['pk'] === '1')
                     ->setAutoIncrement(strpos($columnInfo['type'], 'INT') === 0 && $columnInfo['pk'])
                 ;
 

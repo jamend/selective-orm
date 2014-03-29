@@ -1,7 +1,24 @@
-<phpunit bootstrap="./tests/jamend/Tests/Selective/TestInit.php">
+<phpunit bootstrap="./tests/jamend/Selective/Tests/TestInit.php">
 	<testsuites>
 		<testsuite name="Selective">
 		    <directory>tests/</directory>
 		</testsuite>
 	</testsuites>
+    <php>
+        <var name="test_dbname" value="selective_test" />
+
+        <var name="sqlite_enabled" value="true" />
+        <var name="sqlite_file" value=":memory:" />
+
+        <var name="mysql_enabled" value="false" />
+        <var name="mysql_hostname" value="localhost" />
+        <var name="mysql_port" value="localhost" />
+        <var name="mysql_username" value="root" />
+        <var name="mysql_password" value="" />
+
+        <var name="sqlsrv_enabled" value="false" />
+        <var name="sqlsrv_host" value="localhost\SQLEXPRESS" />
+        <var name="sqlsrv_username" value="" />
+        <var name="sqlsrv_password" value="" />
+    </php>
 </phpunit>

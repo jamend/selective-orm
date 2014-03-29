@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Tests\Selective;
+namespace jamend\Selective\Tests;
 
 class TableTest extends TestCase
 {

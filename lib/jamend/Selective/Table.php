@@ -132,6 +132,15 @@ class Table extends RecordSet
     }
 
     /**
+     * Get an array of this table's constraints
+     * @return array[]
+     */
+    public function getConstraints()
+    {
+        return $this->constraints;
+    }
+
+    /**
      * Prepare a new Record to be saved in this table
      * @return Record
      */

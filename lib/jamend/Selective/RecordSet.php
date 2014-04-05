@@ -16,7 +16,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     /**
      * @var array
      */
-    private $records;
+    private $records = array();
     /**
      * @var bool
      */
@@ -139,28 +139,47 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
+     * Check if a record exists by its ID
+     * @param mixed $offset
+     * @return boolean
+     */
+    public function __isset($name)
+    {
+        $record = $this->getRecordByID($name);
+        if ($record) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Get the record with the given ID from this record set
      * @param string $id
      * @return Record
      */
     public function getRecordByID($id)
     {
-        $query = clone $this->query;
+        if (!array_key_exists($id, $this->records)) {
+            $query = clone $this->query;
 
-        // build a where clause to find a record by its ID
-        $idParts = explode(',', $id);
-        for ($i = 0; $i < count($idParts); $i++) {
-            $columnName = $this->getTable()->getPrimaryKeys()[$i];
-            $column = $this->getTable()->getColumn($columnName);
-            $query->addWhere("{$column->getBaseIdentifier()} = ?", array($idParts[$i]));
+            // build a where clause to find a record by its ID
+            $idParts = explode(',', $id);
+            for ($i = 0; $i < count($idParts); $i++) {
+                $columnName = $this->getTable()->getPrimaryKeys()[$i];
+                $column = $this->getTable()->getColumn($columnName);
+                $query->addWhere("{$column->getBaseIdentifier()} = ?", array($idParts[$i]));
+            }
+
+            $records = $this->getDriver()->getRecords($this->getTable(), $query);
+            if (count($records) == 0) {
+                $this->records[$id] = null;
+            } else {
+                $this->records[$id] = current($records);
+            }
         }
 
-        $records = $this->getDriver()->getRecords($this->getTable(), $query);
-        if (count($records) == 0) {
-            return null;
-        } else {
-            return current($records);
-        }
+        return $this->records[$id];
     }
 
     /**

@@ -72,6 +72,17 @@ class Record
     }
 
     /**
+     * Get this record's column data as an associative array
+     * @return array
+     */
+    public function toArray()
+    {
+        $data = get_object_vars($this);
+        unset($data['_meta']);
+        return array_merge($data, $this->_meta['foreignRecords']);
+    }
+
+    /**
      * Get the ID of this record; for a multiple-primary key table, the PK
      * values are joined by commas
      * @return string

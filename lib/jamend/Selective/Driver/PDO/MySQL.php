@@ -62,7 +62,7 @@ class MySQL extends PDO
         switch ($column->getType()) {
             case 'date':
             case 'datetime':
-                return "TIME_TO_SEC(TIMEDIFF({$column->getBaseIdentifier()}, '1970-01-01 00:00:00')) AS {$column->getName()}";
+                return "UNIX_TIMESTAMP({$column->getBaseIdentifier()}) AS {$column->getName()}";
                 break;
             case 'set':
                 return "{$column->getBaseIdentifier()} + 0 AS {$column->getName()}";
@@ -142,7 +142,7 @@ class MySQL extends PDO
                 $column
                     ->setName($columnInfo['name'])
                     ->setType($columnInfo['type'])
-                    ->setDefault(isset($columnInfo['default']) ? $columnInfo['default'] : null)
+                    ->setDefault(isset($columnInfo['default']) && $columnInfo['default'] !== 'NULL' ? $columnInfo['default'] : null)
                     ->setAllowNull(!isset($columnInfo['allowNull']) || $columnInfo['allowNull'] === 'NULL')
                     ->setAutoIncrement(!empty($columnInfo['autoIncrement']))
                 ;

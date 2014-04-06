@@ -133,6 +133,13 @@ class MySQL extends PDO
         $primaryKeys = array();
         $constraints = array();
 
+        $lowerCaseToActualTableNames = array();
+        $actualTableNames = array();
+        foreach ($this->getTables($database) as $tableName) {
+            $actualTableNames[$tableName] = true;
+            $lowerToRealCaseTableNames[strtolower($tableName)] = $tableName;
+        }
+
         // parse columns
         if (preg_match_all(self::CREATE_TABLE_SQL_COLUMNS_REGEX, $createTableSql, $columns, PREG_SET_ORDER)) {
             $table = new Table($name, $database);
@@ -188,6 +195,11 @@ class MySQL extends PDO
                 }
 
                 $foreignTableName = substr($constraint['relatedTable'], $offset);
+                // workaround for http://bugs.mysql.com/bug.php?id=6555
+                // map lower case table names to actual case table names
+                if (!isset($actualTableNames[$foreignTableName]) && isset($lowerToRealCaseTableNames[$foreignTableName])) {
+                    $foreignTableName = $lowerToRealCaseTableNames[$foreignTableName];
+                }
                 if (!isset($table->relatedTables[$foreignTableName])) {
                     // tables can be related to another table multiple times; we can only use one of them
                     $table->relatedTables[$foreignTableName] = $constraint['name'];

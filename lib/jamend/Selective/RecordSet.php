@@ -10,9 +10,17 @@ namespace jamend\Selective;
 class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
 {
     /**
+     * @var Table
+     */
+    private $table;
+    /**
      * @var Query
      */
     private $query;
+    /**
+     * @var Driver
+     */
+    private $driver;
     /**
      * @var array
      */
@@ -21,10 +29,6 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      * @var bool
      */
     private $dirty = true;
-    /**
-     * @var Driver
-     */
-    private $driver;
 
     /**
      * Make a record set for the given table
@@ -44,6 +48,15 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     public function getTable()
     {
         return $this->table;
+    }
+
+    /**
+     * Get the query object
+     * @return \jamend\Selective\Query
+     */
+    public function getQuery()
+    {
+        return $this->query;
     }
 
     /**

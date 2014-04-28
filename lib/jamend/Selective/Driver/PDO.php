@@ -193,7 +193,7 @@ abstract class PDO implements Driver
      * @param string $args Arguments to pass to class constructor
      * @return object
      */
-    protected function fetchObject($stmt, $className, $args = null)
+    protected function fetchObject($stmt, $className, $args = array())
     {
         return $stmt->fetchObject($className, $args);
     }
@@ -317,8 +317,11 @@ abstract class PDO implements Driver
 
         $result = $this->query($sql, $params);
 
+        $recordClass = $table->getDatabase()->getClassMapper()->getClassForRecord($table->getName());
+        $args = array($table);
+
         $records = array();
-        while ($record = $this->fetchObject($result, 'jamend\Selective\Record', array($table))) {
+        while ($record = $this->fetchObject($result, $recordClass, $args)) {
             $records[$record->getID()] = $record;
         }
         return $records;

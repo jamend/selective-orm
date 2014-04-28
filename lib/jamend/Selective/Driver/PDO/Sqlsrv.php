@@ -248,7 +248,8 @@ SQL
                 'constraintName'
             );
 
-            $table = new Table($name, $database);
+            $tableClass = $database->getClassMapper()->getClassForTable($name);
+            $table = new $tableClass($name, $database);
 
             foreach ($columns as $columnInfo) {
                 $column = new Column($table);

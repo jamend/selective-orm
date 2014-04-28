@@ -17,6 +17,10 @@ class Database
      */
     private $driver;
     /**
+     * @var ClassMapper
+     */
+    private $classMapper;
+    /**
      * @var string
      */
     private $prefix = '';
@@ -26,26 +30,41 @@ class Database
      * @param string $name database name
      * @param string $driver Driver implementation class name
      * @param array $parameters Driver-specific parameters
+     * @param array $classMapperConfig Class mapper configuration (optional)
      */
-    public function __construct($name, $driver, $parameters)
+    public function __construct($name, $driver, $parameters, $classMapper = array())
     {
         $this->name = $name;
 
-        // load driver
-        if ($driver{0} === '\\') {
-            // driver class has absolute namespace
-            $driverClass = $driver;
-        } else {
-            // driver class is relative to this namespace
-            $driverClass = "\jamend\Selective\Driver\\{$driver}";
-        }
-        $this->driver = new $driverClass();
         if (isset($parameters['prefix'])) {
             $this->prefix = $parameters['prefix'];
             unset($parameters['prefix']);
         }
+
+        // load driver
+        if ($driver{0} !== '\\') {
+            // class is relative to this namespace
+            $driver = "\jamend\Selective\Driver\\{$driver}";
+        }
+
+        $this->driver = new $driver();
         $this->driver->loadParameters($parameters);
         $this->driver->connect($this);
+
+        // load class mapper
+        if (isset($classMapper['class'])) {
+            $classMapperClass = $classMapper['class'];
+            unset($classMapper['class']);
+            if ($classMapperClass{0} !== '\\') {
+                // class is relative to this namespace
+                $classMapperClass = "\jamend\Selective\ClassMapper\\{$classMapperClass}";
+            }
+        } else {
+            $classMapperClass = "\jamend\Selective\ClassMapper\BuiltIn";
+        }
+
+        $this->classMapper = new $classMapperClass();
+        $this->classMapper->loadParameters($classMapper);
     }
 
     /**
@@ -64,6 +83,15 @@ class Database
     public function getDriver()
     {
         return $this->driver;
+    }
+
+    /**
+     * Get the class mapper
+     * @return ClassMapper
+     */
+    public function getClassMapper()
+    {
+        return $this->classMapper;
     }
 
     /**

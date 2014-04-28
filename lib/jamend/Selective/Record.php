@@ -91,11 +91,11 @@ class Record
      */
     public function getID()
     {
-        $key = '';
+        $id = '';
         foreach ($this->getTable()->getPrimaryKeys() as $columnName) {
-            $key .= ',' . $this->{$columnName};
+            $id .= ',' . $this->{$columnName};
         }
-        return substr($key, 1);
+        return substr($id, 1);
     }
 
     /**

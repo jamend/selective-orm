@@ -142,7 +142,8 @@ class MySQL extends PDO
 
         // parse columns
         if (preg_match_all(self::CREATE_TABLE_SQL_COLUMNS_REGEX, $createTableSql, $columns, PREG_SET_ORDER)) {
-            $table = new Table($name, $database);
+            $tableClass = $database->getClassMapper()->getClassForTable($name);
+            $table = new $tableClass($name, $database);
 
             foreach ($columns as $columnInfo) {
                 $column = new Column($table);

@@ -134,7 +134,8 @@ class SQLite extends PDO
         $columns = $this->fetchAll("PRAGMA table_info(`{$database->getPrefix()}{$name}`)");
 
         if ($columns) {
-            $table = new Table($name, $database);
+            $tableClass = $database->getClassMapper()->getClassForTable($name);
+            $table = new $tableClass($name, $database);
 
             foreach ($columns as $columnInfo) {
                 $column = new Column($table);

@@ -146,19 +146,32 @@ class MySQL extends PDO
 
             foreach ($columns as $columnInfo) {
                 $column = new Column($table);
+
+                $default = null;
+                if (isset($columnInfo['default']) && $columnInfo['default'] !== 'NULL') {
+                    if ($columnInfo['default'] === '') {
+                        $default = '';
+                    } else {
+                        // we need to parse the SQL default value
+                        $defaultResult = $this->fetchAll('SELECT ' . $columnInfo['default']);
+                        $default = current(current($defaultResult));
+                    }
+                }
+
                 $column
                     ->setName($columnInfo['name'])
                     ->setType($columnInfo['type'])
-                    ->setDefault(isset($columnInfo['default']) && $columnInfo['default'] !== 'NULL' ? $columnInfo['default'] : null)
+                    ->setDefault($default)
                     ->setAllowNull(!isset($columnInfo['allowNull']) || $columnInfo['allowNull'] === 'NULL')
                     ->setAutoIncrement(!empty($columnInfo['autoIncrement']))
                 ;
 
                 if ($column->getType() == 'set' || $column->getType() == 'enum') {
-                    $rawOptions = explode("','", trim($columnInfo['length'], "'"));
+                    // we need to parse the SQL options
+                    $optionsResult = $this->fetchAll('SELECT ' . $columnInfo['length']);
                     $options = array();
                     $i = 0;
-                    foreach ($rawOptions as $option) {
+                    foreach (current($optionsResult) as $option) {
                         $options[($column->getType() == 'set' ? pow(2, $i) : $i)] = $option;
                         $i++;
                     }

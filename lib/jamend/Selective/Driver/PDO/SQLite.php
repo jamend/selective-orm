@@ -66,13 +66,13 @@ class SQLite extends PDO
         switch ($column->getType()) {
             case 'date':
             case 'datetime':
-                return "TIME_TO_SEC(TIMEDIFF({$column->getBaseIdentifier()}, '1970-01-01 00:00:00')) AS {$column->getName()}";
+                return "TIME_TO_SEC(TIMEDIFF({$column->getFullIdentifier()}, '1970-01-01 00:00:00')) AS {$column->getName()}";
                 break;
             case 'set':
-                return "{$column->getBaseIdentifier()} + 0 AS {$column->getName()}";
+                return "{$column->getFullIdentifier()} + 0 AS {$column->getName()}";
                 break;
             default:
-                return $column->getBaseIdentifier();
+                return $column->getFullIdentifier();
                 break;
         }
     }
@@ -137,10 +137,11 @@ class SQLite extends PDO
             $tableClass = $database->getClassMapper()->getClassForTable($name);
             $table = new $tableClass($name, $database);
 
-            foreach ($columns as $columnInfo) {
+            foreach ($columns as $ordinal => $columnInfo) {
                 $column = new Column($table);
                 $column
                     ->setName($columnInfo['name'])
+                    ->setOrdinal($ordinal)
                     ->setType($columnInfo['type'])
                     ->setDefault($columnInfo['dflt_value'])
                     ->setAllowNull($columnInfo['notnull'] === '0')

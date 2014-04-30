@@ -62,13 +62,13 @@ class MySQL extends PDO
         switch ($column->getType()) {
             case 'date':
             case 'datetime':
-                return "UNIX_TIMESTAMP({$column->getBaseIdentifier()}) AS {$column->getName()}";
+                return "UNIX_TIMESTAMP({$column->getFullIdentifier()}) AS {$column->getName()}";
                 break;
             case 'set':
-                return "{$column->getBaseIdentifier()} + 0 AS {$column->getName()}";
+                return "{$column->getFullIdentifier()} + 0 AS {$column->getName()}";
                 break;
             default:
-                return $column->getBaseIdentifier();
+                return $column->getFullIdentifier();
                 break;
         }
     }
@@ -145,7 +145,7 @@ class MySQL extends PDO
             $tableClass = $database->getClassMapper()->getClassForTable($name);
             $table = new $tableClass($name, $database);
 
-            foreach ($columns as $columnInfo) {
+            foreach ($columns as $ordinal => $columnInfo) {
                 $column = new Column($table);
 
                 $default = null;
@@ -161,6 +161,7 @@ class MySQL extends PDO
 
                 $column
                     ->setName($columnInfo['name'])
+                    ->setOrdinal($ordinal)
                     ->setType($columnInfo['type'])
                     ->setDefault($default)
                     ->setAllowNull(!isset($columnInfo['allowNull']) || $columnInfo['allowNull'] === 'NULL')

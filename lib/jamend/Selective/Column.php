@@ -11,6 +11,7 @@ class Column
     private $table;
     private $driver;
     private $name;
+    private $ordinal;
     private $default = null;
     private $isPrimaryKey;
     private $isAutoIncrement = false;
@@ -63,6 +64,26 @@ class Column
     public function setName($name)
     {
         $this->name = $name;
+        return $this;
+    }
+
+    /**
+     * Get the ordinal of the column in the table
+     * @return int
+     */
+    public function getOrdinal()
+    {
+        return $this->ordinal;
+    }
+
+    /**
+     * Set the ordinal of the column in the table
+     * @param int $ordinal
+     * @return Column fluent interface
+     */
+    public function setOrdinal($ordinal)
+    {
+        $this->ordinal = $ordinal;
         return $this;
     }
 

@@ -73,13 +73,13 @@ class Sqlsrv extends Driver\PDO
         switch ($column->getType()) {
             case 'date':
             case 'datetime':
-                return "DATEDIFF(SECOND,{d '1970-01-01'}, {$column->getBaseIdentifier()}) AS {$column->getName()}";
+                return "DATEDIFF(SECOND,{d '1970-01-01'}, {$column->getFullIdentifier()}) AS {$column->getName()}";
                 break;
             case 'set':
-                return "{$column->getBaseIdentifier()} + 0 AS {$column->getName()}";
+                return "{$column->getFullIdentifier()} + 0 AS {$column->getName()}";
                 break;
             default:
-                return $column->getBaseIdentifier();
+                return $column->getFullIdentifier();
                 break;
         }
     }
@@ -251,7 +251,7 @@ SQL
             $tableClass = $database->getClassMapper()->getClassForTable($name);
             $table = new $tableClass($name, $database);
 
-            foreach ($columns as $columnInfo) {
+            foreach ($columns as $ordinal => $columnInfo) {
                 $column = new Column($table);
 
                 $default = null;
@@ -263,6 +263,7 @@ SQL
 
                 $column
                     ->setName($columnInfo['name'])
+                    ->setOrdinal($ordinal)
                     ->setType($columnInfo['type'])
                     ->setDefault($default)
                     ->setAllowNull((bool) $columnInfo['allowNull'])

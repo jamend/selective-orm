@@ -19,13 +19,19 @@ class Record
      * sets column values as properties.
      * @param Table $table
      * @param bool $exists Is this a real record, or a new one that we will probably insert later?
+     * @param array $data optional array of properties => values
      */
-    public function __construct(Table $table, $exists = true)
+    public function __construct(Table $table, $exists = true, $data = null)
     {
         $this->_meta['table'] = $table;
         $this->_meta['exists'] = $exists;
         $this->_meta['existed'] = $exists;
         $this->_meta['driver'] = $table->getDriver();
+        if (isset($data)) {
+            foreach ($data as $key => $value) {
+                $this->{$key} = $value;
+            }
+        }
         foreach ($table->getForeignKeys() as $localColumn => $foreignKey) {
             if (isset($this->{$localColumn})) {
                 $this->_meta['foreignRecords'][$localColumn] = $this->{$localColumn};

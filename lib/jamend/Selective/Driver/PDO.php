@@ -396,21 +396,20 @@ abstract class PDO implements Driver
             $tableName = $table->getName();
             $joinedTables = [];
             $recordClasses = [$tableName => $table->getDatabase()->getClassMapper()->getClassForRecord($tableName)];
-            $offsets = [];
+            $columnOrdinalMap = [];
             $records = [];
             $properties = [];
             $cardinalities = [];
             $recordSets = [];
-            $primaryKeyOrdinals = [];
 
             foreach ($table->getColumns() as $column) {
                 if ($column->isPrimaryKey()) {
                     $primaryKeyOrdinals[$tableName][$column->getOrdinal()] = true;
                 }
+                $columnOrdinalMap[$tableName][$column->getOrdinal()] = $column->getName();
             }
 
-            $offsets[$tableName] = count($table->getColumns());
-            $offset = $offsets[$tableName];
+            $offset = count($table->getColumns());
             foreach ($joins as $join) {
                 if (isset($join['cardinality'])) {
                     $joinedTableName = $join['table'];
@@ -422,6 +421,7 @@ abstract class PDO implements Driver
                         if ($column->isPrimaryKey()) {
                             $primaryKeyOrdinals[$joinedTableName][$offset + $column->getOrdinal()] = true;
                         }
+                        $columnOrdinalMap[$joinedTableName][$offset + $column->getOrdinal()] = $column->getName();
                     }
 
                     $cardinalities[$joinedTableName] = $join['cardinality'];
@@ -432,32 +432,25 @@ abstract class PDO implements Driver
                         $properties[$joinedTableName] = current(array_keys($join['on']));
                     }
 
-                    $offsets[$joinedTableName] = count($joinedTable->getColumns());
-                    $offset += $offsets[$joinedTableName];
+                    $offset += count($joinedTable->getColumns());
                 }
             }
 
             while ($row = $result->fetch(\PDO::FETCH_NUM)) {
                 $id = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$tableName]));
                 if (!isset($records[$id])) {
-                    $recordClass = $recordClasses[$table->getName()];
-                    $record = new $recordClass($table);
-                    foreach ($table->getColumns() as $column) {
-                        $record->{$column->getName()} = $row[$column->getOrdinal()];
-                    }
+                    $recordClass = $recordClasses[$tableName];
+                    $data = array_combine($columnOrdinalMap[$tableName], array_intersect_key($row, $columnOrdinalMap[$tableName]));
+                    $record = new $recordClass($table, true, $data);
                     $records[$id] = $record;
                 }
 
-                $offset = $offsets[$tableName];
                 foreach ($joinedTables as $joinedTable) {
                     $joinedTableName = $joinedTable->getName();
                     $joinedId = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$joinedTableName]));
                     $recordClass = $recordClasses[$joinedTableName];
-                    $joinedRecord = new $recordClass($joinedTable);
-                    foreach ($joinedTable->getColumns() as $column) {
-                        $joinedRecord->{$column->getName()} = $row[$offset + $column->getOrdinal()];
-                    }
-                    $offset += $offsets[$joinedTableName];
+                    $data = array_combine($columnOrdinalMap[$joinedTableName], array_intersect_key($row, $columnOrdinalMap[$joinedTableName]));
+                    $joinedRecord = new $recordClass($joinedTable, true, $data);
                     $property = $properties[$joinedTableName];
                     if ($cardinalities[$joinedTableName] === Query::CARDINALITY_ONE_TO_MANY) {
                         if (!isset($recordSets[$joinedTableName][$id])) {

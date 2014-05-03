@@ -146,10 +146,10 @@ class Table extends RecordSet
      */
     public function create()
     {
-        $record = new Record($this, false);
+        $data = [];
         foreach ($this->getColumns() as $columnName => $column) {
-            $record->{$columnName} = $column->getDefault();
+            $data[$columnName] = $column->getDefault();
         }
-        return $record;
+        return new Record($this, false, $data);
     }
 }

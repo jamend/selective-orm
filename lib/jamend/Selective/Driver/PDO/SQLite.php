@@ -16,6 +16,10 @@ use \jamend\Selective\Column;
 class SQLite extends PDO
 {
     private $file = ':memory:';
+    /**
+     * @var string[]
+     */
+    private $tableNames;
 
     /**
      * Load connection parameters
@@ -110,15 +114,15 @@ class SQLite extends PDO
     public function getTables(Database $database)
     {
         // Cache the list of tables
-        if (!isset($this->tables[$database->getName()])) {
-            $this->tables[$database->getName()] = array();
+        if (!isset($this->tableNames[$database->getName()])) {
+            $this->tableNames[$database->getName()] = array();
             $tables = $this->fetchAll("SELECT name FROM sqlite_master WHERE name LIKE ?", array("{$database->getPrefix()}%"));
             $offset = strlen($database->getPrefix());
             foreach ($tables as $row) {
-                $this->tables[$database->getName()][] = substr(current($row), $offset);
+                $this->tableNames[$database->getName()][] = substr(current($row), $offset);
             }
         }
-        return $this->tables[$database->getName()];
+        return $this->tableNames[$database->getName()];
     }
 
     /**
@@ -129,7 +133,7 @@ class SQLite extends PDO
      * @throws \Exception
      * @return Table
      */
-    public function getTable(Database $database, $name)
+    public function buildTable(Database $database, $name)
     {
         $columns = $this->fetchAll("PRAGMA table_info(`{$database->getPrefix()}{$name}`)");
 

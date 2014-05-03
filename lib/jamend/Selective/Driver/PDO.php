@@ -72,6 +72,28 @@ abstract class PDO implements Driver
     public abstract function quoteObjectIdentifier($objectIdentifier);
 
     /**
+     * Build a jamend\Selective\Table by name
+     * @param string $objectIdentifier
+     * @return string
+     */
+    public abstract function buildTable(Database $database, $name);
+
+    /**
+     * Get a jamend\Selective\Table by name
+     * @param string $name
+     * @param Database $database
+     * @return Table
+     */
+    public function getTable(Database $database, $name)
+    {
+        if (!isset($this->tables[$database->getName()][$name])) {
+            $this->tables[$database->getName()][$name] = $this->buildTable($database, $name);
+        }
+
+        return $this->tables[$database->getName()][$name];
+    }
+
+    /**
      * Quote a value for use in SQL statements
      * @param mixed $value
      * @return string

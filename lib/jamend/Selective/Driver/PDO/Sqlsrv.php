@@ -15,10 +15,23 @@ use \jamend\Selective\Query;
  */
 class Sqlsrv extends Driver\PDO
 {
+    /**
+     * @var string
+     */
     private $host;
+    /**
+     * @var string
+     */
     private $username;
+    /**
+     * @var string
+     */
     private $password;
     private $schema = 'dbo';
+    /**
+     * @var string[]
+     */
+    private $tableNames;
 
     /**
      * Load connection parameters
@@ -167,15 +180,15 @@ SQL;
     public function getTables(Database $database)
     {
         // Cache the list of tables
-        if (!isset($this->tables[$database->getName()])) {
-            $this->tables[$database->getName()] = array();
+        if (!isset($this->tableNames[$database->getName()])) {
+            $this->tableNames[$database->getName()] = array();
             $tables = $this->fetchAll("SELECT name, object_id FROM sys.objects WHERE type IN ('U ', 'V ')", array(), 'object_id');
             $offset = strlen($database->getPrefix());
             foreach ($tables as $index => $row) {
-                $this->tables[$database->getName()][$index] = substr(current($row), $offset);
+                $this->tableNames[$database->getName()][$index] = substr(current($row), $offset);
             }
         }
-        return $this->tables[$database->getName()];
+        return $this->tableNames[$database->getName()];
     }
 
     /**
@@ -186,7 +199,7 @@ SQL;
      * @throws \Exception
      * @return Table
      */
-    public function getTable(Database $database, $name)
+    public function buildTable(Database $database, $name)
     {
         $objectInfo = $this->fetchAll("SELECT object_id FROM sys.objects WHERE type IN ('U ', 'V ') AND name = ?", array($name));
         if (isset($objectInfo[0]['object_id'])) {

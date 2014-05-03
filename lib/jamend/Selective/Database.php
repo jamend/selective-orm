@@ -149,6 +149,6 @@ class Database
     public function __get($name)
     {
         // Cache the table
-        return $this->$name = $this->getTable($name);
+        return $this->getTable($name);
     }
 }

@@ -18,9 +18,22 @@ class MySQL extends PDO
     const CREATE_TABLE_SQL_PRIMARY_KEY_REGEX = '/  PRIMARY KEY \(([^\)]+?)\),?/';
     const CREATE_TABLE_SQL_CONSTRAINT_REGEX = '/  CONSTRAINT `(?P<name>[^`]+?)` FOREIGN KEY \((?P<localColumns>[^)]+?)\) REFERENCES `?(?P<relatedTable>[^`]*?)`? \((?P<relatedColumns>[^)]+?)\)(?: ON DELETE [A-Z]+)?(?: ON UPDATE [A-Z]+)?,?/';
 
+    /**
+     * @var string
+     */
     private $host;
+    /**
+     * @var string
+     */
     private $username;
+    /**
+     * @var string
+     */
     private $password;
+    /**
+     * @var string[]
+     */
+    private $tableNames;
 
     /**
      * Load connection parameters
@@ -106,15 +119,15 @@ class MySQL extends PDO
     public function getTables(Database $database)
     {
         // Cache the list of tables
-        if (!isset($this->tables[$database->getName()])) {
-            $this->tables[$database->getName()] = array();
+        if (!isset($this->tableNames[$database->getName()])) {
+            $this->tableNames[$database->getName()] = array();
             $tables = $this->fetchAll("SHOW TABLES FROM `{$database->getName()}` LIKE ?", array("{$database->getPrefix()}%"));
             $offset = strlen($database->getPrefix());
             foreach ($tables as $row) {
-                $this->tables[$database->getName()][] = substr(current($row), $offset);
+                $this->tableNames[$database->getName()][] = substr(current($row), $offset);
             }
         }
-        return $this->tables[$database->getName()];
+        return $this->tableNames[$database->getName()];
     }
 
     /**
@@ -125,7 +138,7 @@ class MySQL extends PDO
      * @throws \Exception
      * @return Table
      */
-    public function getTable(Database $database, $name)
+    public function buildTable(Database $database, $name)
     {
         $createTableInfo = $this->fetchAll("SHOW CREATE TABLE `{$database->getPrefix()}{$name}`");
         $createTableSql = $createTableInfo[0]['Create Table'];

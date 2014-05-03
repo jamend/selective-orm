@@ -1,6 +1,7 @@
 <?php
 namespace jamend\Selective\Driver;
 
+use \jamend\Selective\Database;
 use \jamend\Selective\Driver;
 use \jamend\Selective\Table;
 use \jamend\Selective\Record;
@@ -19,7 +20,9 @@ abstract class PDO implements Driver
      * @var \PDO
      */
     protected $pdo;
-    protected $tables = array();
+    private $tables = [];
+    private $profiling = false;
+    private $profilingData = [];
 
     /**
      * Get the full quoted identifier including database name
@@ -144,9 +147,20 @@ abstract class PDO implements Driver
     {
         $stmt = $this->pdo->prepare($sql);
 
+        if ($this->isProfiling()) {
+            $startTime = microtime(true);
+        }
+
         // Execute and check if there was an error
         if ($stmt) {
             if ($stmt->execute($params)) {
+                if ($this->isProfiling()) {
+                    $executionTime = microtime(true) - $startTime;
+                    $this->profilingData[] = [
+                        'time' => $executionTime,
+                        'sql' => $sql
+                    ];
+                }
                 return $stmt;
             } else {
                 $errorInfo = $stmt->errorInfo();
@@ -501,5 +515,38 @@ abstract class PDO implements Driver
         $params = array();
         $keyCriteria = $this->getRecordIdentifyingWhereClause($record, $params);
         return $this->executeUpdate("DELETE FROM {$record->getTable()->getFullIdentifier()} WHERE {$keyCriteria}", $params);
+    }
+
+    /**
+     * Enable/disable profiling
+     * @param bool $profiling
+     */
+    public function setProfiling($profiling)
+    {
+        $this->profiling = $profiling;
+    }
+
+    /**
+     * Check if profiling is enabled
+     * @param bool $profiling
+     */
+    public function isProfiling()
+    {
+        return $this->profiling;
+    }
+
+    /**
+     * Get profiling data
+     * @return array[]
+     */
+    public function getProfilingData()
+    {
+        $profilingData = $this->profilingData;
+        $total = 0;
+        foreach ($this->profilingData as $query) {
+            $total += $query['time'];
+        }
+        $profilingData['total'] = ['time' => $total, 'sql' => count($this->profilingData) . ' queries'];
+        return $profilingData;
     }
 }

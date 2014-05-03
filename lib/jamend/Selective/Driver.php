@@ -133,4 +133,22 @@ interface Driver
      * @return boolean True if the record is deleted
      */
     public function deleteRecord($record);
+
+    /**
+     * Enable/disable profiling
+     * @param bool $profiling
+     */
+    public function setProfiling($profiling);
+
+    /**
+     * Check if profiling is enabled
+     * @param bool $profiling
+     */
+    public function isProfiling();
+
+    /**
+     * Get profiling data
+     * @return array[]
+     */
+    public function getProfilingData();
 }

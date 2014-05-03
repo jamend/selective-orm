@@ -119,6 +119,7 @@ class Sqlsrv extends Driver\PDO
     public function buildSQL(Table $table, Query $query, &$params)
     {
         $columns = $this->buildColumnList($table);
+        $from = $this->buildFromClause($query, $table, $columns);
         $where = $this->buildWhereClause($query, $params);
         $having = $this->buildHavingClause($query, $params);
 
@@ -152,7 +153,7 @@ WHERE [_rowCount] BETWEEN {$limitClause[1]} AND {$to}
 SQL;
             }
         } else {
-            $sql = "SELECT {$columns} FROM {$table->getFullIdentifier()}{$where}{$having}{$orderBy}";
+            $sql = "SELECT {$columns} FROM {$from}{$where}{$having}{$orderBy}";
         }
 
         return $sql;

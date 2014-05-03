@@ -136,6 +136,43 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
+     * Pre-load related table with result set
+     * @param string $tableName
+     * @return \jamend\Selective\RecordSet
+     */
+    public function with($tableName)
+    {
+        $on = [];
+        $joinType = 'left';
+        $relatedTable = $this->getDatabase()->getTable($tableName);
+        $columns = array_keys($relatedTable->getColumns());
+        $cardinality = null;
+        if (isset($relatedTable->relatedTables[$this->getTable()->getName()])) {
+            $constraintName = $relatedTable->relatedTables[$this->getTable()->getName()];
+            $constraint = $relatedTable->constraints[$constraintName];
+            $cardinality = Query::CARDINALITY_MANY_TO_ONE;
+        } else if ($this->getTable()->relatedTables[$relatedTable->getName()]) {
+            $constraintName = $this->getTable()->relatedTables[$relatedTable->getName()];
+            $constraint = $this->getTable()->constraints[$constraintName];
+            $cardinality = Query::CARDINALITY_ONE_TO_MANY;
+        } else {
+            throw new Exception("Table {$this->getTable()->getName()} is not related to {$relatedTable->getName()}");
+        }
+
+        for ($i = 0; $i < count($constraint['localColumns']); $i++) {
+            $relatedColumn = $relatedTable->getColumn($constraint['relatedColumns'][$i]);
+            if (!$relatedColumn->isAllowNull()) {
+                $joinType = 'inner';
+            }
+            $on[$constraint['relatedColumns'][$i]] = $constraint['localColumns'][$i];
+        }
+
+        $recordSet = $this->openRecordSet();
+        $recordSet->query->addJoin($joinType, $tableName, $on, null, $columns, $cardinality);
+        return $recordSet;
+    }
+
+    /**
      * Get the record with the given ID from this record set
      * @param string $name
      * @return Record

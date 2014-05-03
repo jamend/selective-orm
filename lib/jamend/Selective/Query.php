@@ -8,10 +8,14 @@ namespace jamend\Selective;
  */
 class Query
 {
+    const CARDINALITY_ONE_TO_MANY = 0;
+    const CARDINALITY_MANY_TO_ONE = 1;
+
     private $where = array();
     private $having = array();
     private $limit = null;
     private $orderBy = array();
+    private $joins = array();
 
     /**
      * Add a where condition
@@ -87,5 +91,35 @@ class Query
     public function getOrderBy()
     {
         return $this->orderBy;
+    }
+
+    /**
+     * Add a join
+     * @param string $type
+     * @param string $table
+     * @param array $on column mapping for ON clause
+     * @param string $alias optional alias for joined table
+     * @param array $columns optional list of columns to include from joined table
+     * @param int $columns optional one of the CARDINALITY_ consts
+     */
+    public function addJoin($type, $table, $on, $alias = null, $columns = null, $cardinality = null)
+    {
+        $this->joins[] = [
+            'type' => $type,
+            'table' => $table,
+            'on' => $on,
+            'alias' => $alias,
+            'columns' => $columns,
+            'cardinality' => $cardinality
+        ];
+    }
+
+    /**
+     * Get the joins
+     * @return array[]
+     */
+    public function getJoins()
+    {
+        return $this->joins;
     }
 }

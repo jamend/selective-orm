@@ -213,6 +213,43 @@ abstract class PDO implements Driver
     }
 
     /**
+     * Build SQL FROM clause
+     * @param Table $table
+     * @return string
+     */
+    protected function buildFromClause(Query $query, Table $table, &$columns)
+    {
+        $from = $table->getFullIdentifier();
+        foreach ($query->getJoins() as $join) {
+            if ($join['type'] == 'left') {
+                $from .= ' LEFT JOIN ';
+            } else {
+                $from .= ' INNER JOIN ';
+            }
+            $rightSideTable = $table->getDatabase()->getTable($join['table']);
+            if (!empty($join['columns'])) {
+                foreach ($join['columns'] as $columnName) {
+                    $column = $rightSideTable->getColumn($columnName);
+                    $columns .= ", {$column->getSQLExpression()}";
+                }
+            }
+            $from .= $rightSideTable->getFullIdentifier();
+            if (empty($join['alias'])) {
+                $rightSideTableReference = $rightSideTable->getFullIdentifier();
+            } else {
+                $rightSideTableReference = $join['alias'];
+                $from .= ' AS ' . $join['alias'];
+            }
+            $on = '';
+            foreach ($join['on'] as $leftSide => $rightSide) {
+                $on .= ' AND ' . $table->getFullIdentifier() . '.' . $leftSide . ' = ' . $rightSideTableReference . '.' . $rightSide;
+            }
+            $from .= ' ON (' . substr($on, 5) . ')';
+        }
+        return $from;
+    }
+
+    /**
      * Build SQL WHERE clause
      * @param Query $query
      * @param &array $params
@@ -294,13 +331,14 @@ abstract class PDO implements Driver
     public function buildSQL(Table $table, Query $query, &$params)
     {
         $columns = $this->buildColumnList($table);
+        $from = $this->buildFromClause($query, $table, $columns);
         $where = $this->buildWhereClause($query, $params);
         $having = $this->buildHavingClause($query, $params);
         $orderBy = $this->buildOrderByClause($query);
         $limit = $this->buildLimitClause($query);
 
         // assemble query
-        return "SELECT {$columns} FROM {$table->getFullIdentifier()}{$where}{$having}{$orderBy}{$limit}";
+        return "SELECT {$columns} FROM {$from}{$where}{$having}{$orderBy}{$limit}";
     }
 
     /**
@@ -317,12 +355,57 @@ abstract class PDO implements Driver
 
         $result = $this->query($sql, $params);
 
-        $recordClass = $table->getDatabase()->getClassMapper()->getClassForRecord($table->getName());
-        $args = array($table);
+        $joins = $query->getJoins();
+        if (count($joins) > 0) {
+            $joinedTables = [];
+            $recordClasses = [$table->getName() => $table->getDatabase()->getClassMapper()->getClassForRecord($table->getName())];
+            $records = [];
+            $properties = [];
 
-        $records = array();
-        while ($record = $this->fetchObject($result, $recordClass, $args)) {
-            $records[$record->getID()] = $record;
+            foreach ($joins as $join) {
+                if (isset($join['cardinality'])) {
+                    $tableName = $join['table'];
+                    $joinedTable = $table->getDatabase()->getTable($tableName);
+                    $joinedTables[] = $joinedTable;
+                    $recordClasses[$tableName] = $joinedTable->getDatabase()->getClassMapper()->getClassForRecord($tableName);
+                    if ($join['cardinality'] === Query::CARDINALITY_ONE_TO_MANY) {
+                        $properties[$tableName] = $tableName;
+                    } else {
+                        // TODO support multi-column relationships
+                        $properties[$tableName] = current(array_keys($join['on']));
+                    }
+                }
+            }
+
+            while ($row = $result->fetch(\PDO::FETCH_NUM)) {
+                $recordClass = $recordClasses[$table->getName()];
+                $record = new $recordClass($table);
+                foreach ($table->getColumns() as $column) {
+                    $record->{$column->getName()} = $row[$column->getOrdinal()];
+                }
+
+                $offset = count($table->getColumns());
+                foreach ($joinedTables as $joinedTable) {
+                    $recordClass = $recordClasses[$joinedTable->getName()];
+                    $joinedRecord = new $recordClass($joinedTable);
+                    foreach ($joinedTable->getColumns() as $column) {
+                        $joinedRecord->{$column->getName()} = $row[$offset + $column->getOrdinal()];
+                    }
+                    $offset += count($joinedTable->getColumns());
+                    $property = $properties[$joinedTable->getName()];
+                    // TODO support one to many property as RecordSet
+                    $record->{$property} = $joinedRecord;
+                }
+                $records[] = $record;
+            }
+        } else {
+            $recordClass = $table->getDatabase()->getClassMapper()->getClassForRecord($table->getName());
+            $args = array($table);
+
+            $records = array();
+            while ($record = $this->fetchObject($result, $recordClass, $args)) {
+                $records[$record->getID()] = $record;
+            }
         }
         return $records;
     }

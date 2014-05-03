@@ -393,46 +393,82 @@ abstract class PDO implements Driver
 
         $joins = $query->getJoins();
         if (count($joins) > 0) {
+            $tableName = $table->getName();
             $joinedTables = [];
-            $recordClasses = [$table->getName() => $table->getDatabase()->getClassMapper()->getClassForRecord($table->getName())];
+            $recordClasses = [$tableName => $table->getDatabase()->getClassMapper()->getClassForRecord($tableName)];
+            $offsets = [];
             $records = [];
             $properties = [];
+            $cardinalities = [];
+            $recordSets = [];
+            $primaryKeyOrdinals = [];
 
+            foreach ($table->getColumns() as $column) {
+                if ($column->isPrimaryKey()) {
+                    $primaryKeyOrdinals[$tableName][$column->getOrdinal()] = true;
+                }
+            }
+
+            $offsets[$tableName] = count($table->getColumns());
+            $offset = $offsets[$tableName];
             foreach ($joins as $join) {
                 if (isset($join['cardinality'])) {
-                    $tableName = $join['table'];
-                    $joinedTable = $table->getDatabase()->getTable($tableName);
+                    $joinedTableName = $join['table'];
+                    $joinedTable = $table->getDatabase()->getTable($joinedTableName);
                     $joinedTables[] = $joinedTable;
-                    $recordClasses[$tableName] = $joinedTable->getDatabase()->getClassMapper()->getClassForRecord($tableName);
+                    $recordClasses[$joinedTableName] = $joinedTable->getDatabase()->getClassMapper()->getClassForRecord($joinedTableName);
+
+                    foreach ($joinedTable->getColumns() as $column) {
+                        if ($column->isPrimaryKey()) {
+                            $primaryKeyOrdinals[$joinedTableName][$offset + $column->getOrdinal()] = true;
+                        }
+                    }
+
+                    $cardinalities[$joinedTableName] = $join['cardinality'];
                     if ($join['cardinality'] === Query::CARDINALITY_ONE_TO_MANY) {
-                        $properties[$tableName] = $tableName;
+                        $properties[$joinedTableName] = $joinedTableName;
                     } else {
                         // TODO support multi-column relationships
-                        $properties[$tableName] = current(array_keys($join['on']));
+                        $properties[$joinedTableName] = current(array_keys($join['on']));
                     }
+
+                    $offsets[$joinedTableName] = count($joinedTable->getColumns());
+                    $offset += $offsets[$joinedTableName];
                 }
             }
 
             while ($row = $result->fetch(\PDO::FETCH_NUM)) {
-                $recordClass = $recordClasses[$table->getName()];
-                $record = new $recordClass($table);
-                foreach ($table->getColumns() as $column) {
-                    $record->{$column->getName()} = $row[$column->getOrdinal()];
+                $id = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$tableName]));
+                if (!isset($records[$id])) {
+                    $recordClass = $recordClasses[$table->getName()];
+                    $record = new $recordClass($table);
+                    foreach ($table->getColumns() as $column) {
+                        $record->{$column->getName()} = $row[$column->getOrdinal()];
+                    }
+                    $records[$id] = $record;
                 }
 
-                $offset = count($table->getColumns());
+                $offset = $offsets[$tableName];
                 foreach ($joinedTables as $joinedTable) {
-                    $recordClass = $recordClasses[$joinedTable->getName()];
+                    $joinedTableName = $joinedTable->getName();
+                    $joinedId = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$joinedTableName]));
+                    $recordClass = $recordClasses[$joinedTableName];
                     $joinedRecord = new $recordClass($joinedTable);
                     foreach ($joinedTable->getColumns() as $column) {
                         $joinedRecord->{$column->getName()} = $row[$offset + $column->getOrdinal()];
                     }
-                    $offset += count($joinedTable->getColumns());
-                    $property = $properties[$joinedTable->getName()];
-                    // TODO support one to many property as RecordSet
-                    $record->{$property} = $joinedRecord;
+                    $offset += $offsets[$joinedTableName];
+                    $property = $properties[$joinedTableName];
+                    if ($cardinalities[$joinedTableName] === Query::CARDINALITY_ONE_TO_MANY) {
+                        if (!isset($recordSets[$joinedTableName][$id])) {
+                            $recordSets[$joinedTableName][$id] = $joinedTable->openRecordSet();
+                            $records[$id]->{$property} = $recordSets[$joinedTableName][$id];
+                        }
+                        $recordSets[$joinedTableName][$id][$joinedId] = $joinedRecord;
+                    } else {
+                        $records[$id]->{$property} = $joinedRecord;
+                    }
                 }
-                $records[] = $record;
             }
         } else {
             $recordClass = $table->getDatabase()->getClassMapper()->getClassForRecord($table->getName());

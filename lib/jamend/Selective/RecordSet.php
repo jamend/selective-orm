@@ -144,17 +144,17 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     {
         $on = [];
         $joinType = 'left';
-        $relatedTable = $this->getDatabase()->getTable($tableName);
+        $relatedTable = $this->getTable()->getDatabase()->getTable($tableName);
         $columns = array_keys($relatedTable->getColumns());
         $cardinality = null;
         if (isset($relatedTable->relatedTables[$this->getTable()->getName()])) {
             $constraintName = $relatedTable->relatedTables[$this->getTable()->getName()];
             $constraint = $relatedTable->constraints[$constraintName];
-            $cardinality = Query::CARDINALITY_MANY_TO_ONE;
+            $cardinality = Query::CARDINALITY_ONE_TO_MANY;
         } else if ($this->getTable()->relatedTables[$relatedTable->getName()]) {
             $constraintName = $this->getTable()->relatedTables[$relatedTable->getName()];
             $constraint = $this->getTable()->constraints[$constraintName];
-            $cardinality = Query::CARDINALITY_ONE_TO_MANY;
+            $cardinality = Query::CARDINALITY_MANY_TO_ONE;
         } else {
             throw new Exception("Table {$this->getTable()->getName()} is not related to {$relatedTable->getName()}");
         }
@@ -304,7 +304,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      */
     public function offsetSet($offset, $value)
     {
-        $this->load();
+        $this->dirty = false;
         $this->records[$offset] = $value;
     }
 

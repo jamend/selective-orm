@@ -89,3 +89,23 @@ $book = $books->{16};
 $book->idAuthor = $author; // '2' would also work
 $book->save();
 ```
+
+**Relationship optimization**
+
+Related records are by default lazy loaded, meaning that the author for $book->idAuthor or the book record set for $author->Books will not be loaded until you request them. This is undesirable when working with a record set and its related records in batches, as it will result in many queries to the database being called in a loop. To demonstrate:
+
+```php
+foreach ($db->Books as $book) {
+	// to get every book's author's name, a query must be sent to the database to fetch the book's author
+	echo $book->idAuthor->name;
+}
+```
+
+To avoid this, the RecordSet::with($tableName) method can be used to tell Selective to pre-load the related records for a RecordSet:
+
+```php
+foreach ($db->Books->with('Authors') as $book) {
+	// the author for each book will already be pre-loaded using the same query that fetched the books
+	echo $book->idAuthor->name;
+}
+```

@@ -1,9 +1,23 @@
 selective-orm
 =============
 
-Selective is (for now) a database abstraction layer that simplifies working with databases. It is fully object-oriented, and infers the database schema (tables/columns/relationships) automatically, so you don't have to repeat it in your code. Eventually it will also include ORM features, so you can connect a schema to your application's model.
+Selective ORM is a database abstraction layer that simplifies working with databases. It is fully object-oriented, and infers the database schema (tables/columns/relationships) automatically, so you don't have to repeat it in your code.
 
-**Examples**
+Installing
+==========
+
+If you'd like to try Selective pending a stable release, you can add this to your composer.json:
+
+```javascript
+{
+    "require": {
+        "jamend/selective-orm": "dev-master"
+    }
+}
+```
+
+Usage
+=====
 
 Connecting to a database
 ```php
@@ -62,7 +76,7 @@ Delete book
 $books->{14}->delete();
 ```
 
-**Relationships**
+Relationships
 
 Selective can also simplify the use of foreign key constraints that are defined in the schema. Here are some examples:
 

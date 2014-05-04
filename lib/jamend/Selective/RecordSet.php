@@ -271,6 +271,17 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
         return current($this->records);
     }
 
+    /**
+     * Get the first record from this record set
+     * @return Record
+     */
+    public function last()
+    {
+        $this->load();
+        reset($this->records);
+        return end($this->records);
+    }
+
     // Array iteration/traversal
 
     /**

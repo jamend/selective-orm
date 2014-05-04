@@ -401,6 +401,7 @@ abstract class PDO implements Driver
             $properties = [];
             $cardinalities = [];
             $recordSets = [];
+            $relatedRecords = [];
 
             foreach ($table->getColumns() as $column) {
                 if ($column->isPrimaryKey()) {
@@ -448,18 +449,22 @@ abstract class PDO implements Driver
                 foreach ($joinedTables as $joinedTable) {
                     $joinedTableName = $joinedTable->getName();
                     $joinedId = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$joinedTableName]));
-                    $recordClass = $recordClasses[$joinedTableName];
-                    $data = array_combine($columnOrdinalMap[$joinedTableName], array_intersect_key($row, $columnOrdinalMap[$joinedTableName]));
-                    $joinedRecord = new $recordClass($joinedTable, true, $data);
+
+                    if (!isset($relatedRecords[$joinedTableName][$joinedId])) {
+                        $recordClass = $recordClasses[$joinedTableName];
+                        $data = array_combine($columnOrdinalMap[$joinedTableName], array_intersect_key($row, $columnOrdinalMap[$joinedTableName]));
+                        $relatedRecords[$joinedTableName][$joinedId] = new $recordClass($joinedTable, true, $data);
+                    }
+
                     $property = $properties[$joinedTableName];
                     if ($cardinalities[$joinedTableName] === Query::CARDINALITY_ONE_TO_MANY) {
                         if (!isset($recordSets[$joinedTableName][$id])) {
                             $recordSets[$joinedTableName][$id] = $joinedTable->openRecordSet();
                             $records[$id]->{$property} = $recordSets[$joinedTableName][$id];
                         }
-                        $recordSets[$joinedTableName][$id][$joinedId] = $joinedRecord;
+                        $recordSets[$joinedTableName][$id][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
                     } else {
-                        $records[$id]->{$property} = $joinedRecord;
+                        $records[$id]->{$property} = $relatedRecords[$joinedTableName][$joinedId];
                     }
                 }
             }

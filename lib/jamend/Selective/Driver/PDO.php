@@ -359,14 +359,15 @@ abstract class PDO implements Driver
      * Get a Table's records for the given Query
      * @param Table $table
      * @param Query $query
+     * @param bool $asArray return the records as arrays instead of objects
      * @return Record[]
      */
-    public function getRecords(Table $table, Query $query)
+    public function getRecords(Table $table, Query $query, $asArray = false)
     {
         $params = array();
 
         $tableName = $table->getName();
-        $recordClasses = [$tableName => $table->getDatabase()->getClassMapper()->getClassForRecord($tableName)];
+        if (!$asArray) $recordClasses = [$tableName => $table->getDatabase()->getClassMapper()->getClassForRecord($tableName)];
         $records = [];
 
         $rawSql = $query->getRawSql();
@@ -378,13 +379,17 @@ abstract class PDO implements Driver
             $result = $this->query($sql, $params);
 
             while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
-                $recordClass = $recordClasses[$tableName];
-                $record = new $recordClass($table, true, $data);
-                $id = $record->getId();
-                if ($id === null) {
-                    $records[] = $record;
+                if ($asArray) {
+                    $records[] = $data;
                 } else {
-                    $records[$id] = $record;
+                    $recordClass = $recordClasses[$tableName];
+                    $record = new $recordClass($table, true, $data);
+                    $id = $record->getId();
+                    if ($id === null) {
+                        $records[] = $record;
+                    } else {
+                        $records[$id] = $record;
+                    }
                 }
             }
 
@@ -412,7 +417,7 @@ abstract class PDO implements Driver
                 $joinedTableName = $join['table'];
                 $joinedTable = $table->getDatabase()->getTable($joinedTableName);
                 $joinedTables[] = $joinedTable;
-                $recordClasses[$joinedTableName] = $joinedTable->getDatabase()->getClassMapper()->getClassForRecord($joinedTableName);
+                if (!$asArray) $recordClasses[$joinedTableName] = $joinedTable->getDatabase()->getClassMapper()->getClassForRecord($joinedTableName);
 
                 foreach ($joinedTable->getColumns() as $column) {
                     if ($column->isPrimaryKey()) {
@@ -435,9 +440,13 @@ abstract class PDO implements Driver
         while ($row = $result->fetch(\PDO::FETCH_NUM)) {
             $id = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$tableName]));
             if (!isset($records[$id])) {
-                $recordClass = $recordClasses[$tableName];
                 $data = array_combine($columnOrdinalMap[$tableName], array_intersect_key($row, $columnOrdinalMap[$tableName]));
-                $record = new $recordClass($table, true, $data);
+                if ($asArray) {
+                    $record = $data;
+                } else {
+                    $recordClass = $recordClasses[$tableName];
+                    $record = new $recordClass($table, true, $data);
+                }
                 $records[$id] = $record;
             }
 
@@ -446,21 +455,36 @@ abstract class PDO implements Driver
                 $joinedId = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$joinedTableName]));
 
                 if (!isset($relatedRecords[$joinedTableName][$joinedId])) {
-                    $recordClass = $recordClasses[$joinedTableName];
                     $data = array_combine($columnOrdinalMap[$joinedTableName], array_intersect_key($row, $columnOrdinalMap[$joinedTableName]));
-                    $relatedRecords[$joinedTableName][$joinedId] = new $recordClass($joinedTable, true, $data);
+                    if ($asArray) {
+                        $relatedRecords[$joinedTableName][$joinedId] = $data;
+                    } else {
+                        $recordClass = $recordClasses[$joinedTableName];
+                        $relatedRecords[$joinedTableName][$joinedId] = new $recordClass($joinedTable, true, $data);
+                    }
                 }
 
                 if ($cardinalities[$joinedTableName] === Query::CARDINALITY_ONE_TO_MANY) {
+                    $property = $properties[$joinedTableName][0];
                     if (!isset($recordSets[$joinedTableName][$id])) {
                         $recordSets[$joinedTableName][$id] = $joinedTable->openRecordSet();
-                        $property = $properties[$joinedTableName][0];
-                        $records[$id]->{$property} = $recordSets[$joinedTableName][$id];
+
+                        if (!$asArray) {
+                            $records[$id]->{$property} = $recordSets[$joinedTableName][$id];
+                        }
                     }
-                    $recordSets[$joinedTableName][$id][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
+                    if ($asArray) {
+                        $records[$id][$property][$joinedId] = $recordSets[$joinedTableName][$id];
+                    } else {
+                        $recordSets[$joinedTableName][$id][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
+                    }
                 } else {
                     foreach ($properties[$joinedTableName] as $property) {
-                        $records[$id]->{$property} = $relatedRecords[$joinedTableName][$joinedId];
+                        if ($asArray) {
+                            $records[$id][$property] = $relatedRecords[$joinedTableName][$joinedId];
+                        } else {
+                            $records[$id]->{$property} = $relatedRecords[$joinedTableName][$joinedId];
+                        }
                     }
                 }
             }

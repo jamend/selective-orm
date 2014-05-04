@@ -318,6 +318,15 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
+     * Return this result set's data as an array of arrays
+     * @return array[]
+     */
+    public function toArray()
+    {
+        return $this->getDriver()->getRecords($this->getTable(), $this->query, true);
+    }
+
+    /**
      * Get a record by its ID
      * @param mixed $offset
      * @return int

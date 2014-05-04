@@ -11,11 +11,12 @@ class Query
     const CARDINALITY_ONE_TO_MANY = 0;
     const CARDINALITY_MANY_TO_ONE = 1;
 
-    private $where = array();
-    private $having = array();
+    private $rawSql = null;
+    private $where = [];
+    private $having = [];
     private $limit = null;
-    private $orderBy = array();
-    private $joins = array();
+    private $orderBy = [];
+    private $joins = [];
 
     /**
      * Add a where condition
@@ -24,7 +25,7 @@ class Query
      */
     public function addWhere($criteria, $params)
     {
-        $this->where[] = array($criteria, $params);
+        $this->where[] = [$criteria, $params];
     }
 
     /**
@@ -43,7 +44,7 @@ class Query
      */
     public function addHaving($criteria, $params)
     {
-        $this->having[] = array($criteria, $params);
+        $this->having[] = [$criteria, $params];
     }
 
     /**
@@ -62,7 +63,7 @@ class Query
      */
     public function setLimit($limit, $offset = 0)
     {
-        $this->limit = array($limit, $offset);
+        $this->limit = [$limit, $offset];
     }
 
     /**
@@ -81,7 +82,7 @@ class Query
      */
     public function addOrderBy($field, $direction = 'ASC')
     {
-        $this->orderBy[] = array($field, $direction);
+        $this->orderBy[] = [$field, $direction];
     }
 
     /**
@@ -121,5 +122,23 @@ class Query
     public function getJoins()
     {
         return $this->joins;
+    }
+
+    /**
+     * Set raw SQL for this query
+     * @param string $rawSql
+     */
+    public function setRawSql($rawSql)
+    {
+        $this->rawSql = $rawSql;
+    }
+
+    /**
+     * Gt raw SQL for this query
+     * @return string
+     */
+    public function getRawSql()
+    {
+        return $this->rawSql;
     }
 }

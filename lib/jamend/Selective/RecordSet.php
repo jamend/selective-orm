@@ -181,6 +181,18 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
+     * Return a new result set using the given raw SQL
+     * @param string $sql
+     * @return \jamend\Selective\RecordSet
+     */
+    public function sql($sql)
+    {
+        $recordSet = $this->openRecordSet();
+        $recordSet->query->setRawSql($sql);
+        return $recordSet;
+    }
+
+    /**
      * Get the record with the given ID from this record set
      * @param string $name
      * @return Record

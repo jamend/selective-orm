@@ -99,9 +99,15 @@ class Record
     {
         $id = '';
         foreach ($this->getTable()->getPrimaryKeys() as $columnName) {
-            $id .= ',' . $this->{$columnName};
+            if (isset($this->{$columnName})) {
+                $id .= ',' . $this->{$columnName};
+            }
         }
-        return substr($id, 1);
+        if (strlen($id) > 1) {
+            return substr($id, 1);
+        } else {
+            return null;
+        }
     }
 
     /**

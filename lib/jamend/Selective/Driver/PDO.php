@@ -365,15 +365,35 @@ abstract class PDO implements Driver
     {
         $params = array();
 
-        $sql = $this->buildSQL($table, $query, $params);
-
-        $result = $this->query($sql, $params);
-
         $tableName = $table->getName();
-        $joinedTables = [];
         $recordClasses = [$tableName => $table->getDatabase()->getClassMapper()->getClassForRecord($tableName)];
-        $columnOrdinalMap = [];
         $records = [];
+
+        $rawSql = $query->getRawSql();
+        if ($rawSql === null) {
+            $sql = $this->buildSQL($table, $query, $params);
+            $result = $this->query($sql, $params);
+        } else {
+            $sql = $rawSql;
+            $result = $this->query($sql, $params);
+
+            while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
+                $recordClass = $recordClasses[$tableName];
+                $record = new $recordClass($table, true, $data);
+                $id = $record->getId();
+                if ($id === null) {
+                    $records[] = $record;
+                } else {
+                    $records[$id] = $record;
+                }
+            }
+
+            return $records;
+        }
+
+
+        $joinedTables = [];
+        $columnOrdinalMap = [];
         $properties = [];
         $cardinalities = [];
         $recordSets = [];

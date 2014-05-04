@@ -427,10 +427,9 @@ abstract class PDO implements Driver
 
                     $cardinalities[$joinedTableName] = $join['cardinality'];
                     if ($join['cardinality'] === Query::CARDINALITY_ONE_TO_MANY) {
-                        $properties[$joinedTableName] = $joinedTableName;
+                        $properties[$joinedTableName] = [$joinedTableName];
                     } else {
-                        // TODO support multi-column relationships
-                        $properties[$joinedTableName] = current(array_keys($join['on']));
+                        $properties[$joinedTableName] = array_keys($join['on']);
                     }
 
                     $offset += count($joinedTable->getColumns());
@@ -456,15 +455,17 @@ abstract class PDO implements Driver
                         $relatedRecords[$joinedTableName][$joinedId] = new $recordClass($joinedTable, true, $data);
                     }
 
-                    $property = $properties[$joinedTableName];
                     if ($cardinalities[$joinedTableName] === Query::CARDINALITY_ONE_TO_MANY) {
                         if (!isset($recordSets[$joinedTableName][$id])) {
                             $recordSets[$joinedTableName][$id] = $joinedTable->openRecordSet();
+                            $property = $properties[$joinedTableName][0];
                             $records[$id]->{$property} = $recordSets[$joinedTableName][$id];
                         }
                         $recordSets[$joinedTableName][$id][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
                     } else {
-                        $records[$id]->{$property} = $relatedRecords[$joinedTableName][$joinedId];
+                        foreach ($properties[$joinedTableName] as $property) {
+                            $records[$id]->{$property} = $relatedRecords[$joinedTableName][$joinedId];
+                        }
                     }
                 }
             }

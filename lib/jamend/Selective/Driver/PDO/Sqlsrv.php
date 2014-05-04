@@ -140,7 +140,7 @@ class Sqlsrv extends Driver\PDO
 
         if ($limitClause = $query->getLimit()) {
             if (empty($limitClause[1])) {
-                $sql = "SELECT TOP {$limitClause[0]} {$columns} FROM {$table->getFullIdentifier()}{$where}{$having}{$orderBy}";
+                $sql = "SELECT TOP {$limitClause[0]} {$columns} FROM {$from}{$where}{$having}{$orderBy}";
             } else {
                 $primaryKeys = '';
                 $outerColumns = '';
@@ -152,7 +152,7 @@ class Sqlsrv extends Driver\PDO
                 }
                 $primaryKeys = substr($primaryKeys, 2); // remove first ', '
                 $outerColumns = substr($outerColumns, 2); // remove first ', '
-                $data = "SELECT {$columns}, ROW_NUMBER() OVER (ORDER BY {$primaryKeys}) AS [_rowCount] FROM {$table->getFullIdentifier()}{$where}{$having}{$orderBy}";
+                $data = "SELECT {$columns}, ROW_NUMBER() OVER (ORDER BY {$primaryKeys}) AS [_rowCount] FROM {$from}{$where}{$having}{$orderBy}";
 
                 $to = $limitClause[0] + $limitClause[1];
                 $sql = <<<SQL

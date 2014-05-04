@@ -248,8 +248,8 @@ FROM
 		ON localColumns.column_id = foreign_key_columns.parent_column_id
 		AND localColumns.object_id = foreign_key_columns.parent_object_id
 	INNER JOIN sys.columns AS foreignColumns
-		ON foreignColumns.column_id = foreign_key_columns.parent_column_id
-		AND foreignColumns.object_id = foreign_key_columns.parent_object_id
+		ON foreignColumns.column_id = foreign_key_columns.referenced_column_id
+		AND foreignColumns.object_id = foreign_key_columns.referenced_object_id
 WHERE
 	foreign_keys.parent_object_id = ?
 ORDER BY

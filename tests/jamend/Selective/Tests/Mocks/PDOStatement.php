@@ -33,11 +33,11 @@ class PDOStatement extends \PDOStatement
         'SELECT `test`.`Books`.`idBook`, `test`.`Books`.`title`, `test`.`Books`.`idAuthor`, `test`.`Books`.`isbn`, `test`.`Books`.`description` FROM `test`.`Books` WHERE (`idBook` = ?)' => array(
             0 =>
             array (
-                'idBook' => '1',
-                'title' => 'My First Book',
-                'idAuthor' => '1',
-                'isbn' => '12345-6789',
-                'description' => 'It wasn\'t very good',
+                0 => '1',
+                1 => 'My First Book',
+                2 => '1',
+                3 => '12345-6789',
+                4 => 'It wasn\'t very good',
             ),
         )
     );
@@ -74,20 +74,5 @@ class PDOStatement extends \PDOStatement
         $row = current($this->fakeData[$this->sql]);
         next($this->fakeData[$this->sql]);
         return $row;
-    }
-
-    public function fetchObject($class_name = null, $ctor_args = null)
-    {
-        if ($data = $this->fetch()) {
-            if (!$class_name) $class_name = '\stdClass';
-            $rflClass = new \ReflectionClass($class_name);
-            $object = $rflClass->newInstanceArgs($ctor_args);
-            foreach ($data as $key => $value) {
-                $object->$key = $value;
-            }
-            return $object;
-        } else {
-            return false;
-        }
     }
 }

@@ -15,7 +15,7 @@ class Record
 
     /**
      * Get a record in the given table.
-     * This class is usually instantiated by \PDOStatement::fetchObject, which
+     * This class is usually instantiated by Driver::getRecords(), which
      * sets column values as properties.
      * @param Table $table
      * @param bool $exists Is this a real record, or a new one that we will probably insert later?

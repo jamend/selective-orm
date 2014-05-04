@@ -213,28 +213,6 @@ abstract class PDO implements Driver
     }
 
     /**
-     * Get a row from a statement as an associative array
-     * @param \PDOStatement $stmt
-     * @return array
-     */
-    protected function fetchRow($stmt)
-    {
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Get a row from a statement as an object
-     * @param \PDOStatement $stmt
-     * @param string $className Name of class of resulting object
-     * @param string $args Arguments to pass to class constructor
-     * @return object
-     */
-    protected function fetchObject($stmt, $className, $args = array())
-    {
-        return $stmt->fetchObject($className, $args);
-    }
-
-    /**
      * Build SQL column list
      * @param Table $table
      * @return string
@@ -391,93 +369,83 @@ abstract class PDO implements Driver
 
         $result = $this->query($sql, $params);
 
-        $joins = $query->getJoins();
-        if (count($joins) > 0) {
-            $tableName = $table->getName();
-            $joinedTables = [];
-            $recordClasses = [$tableName => $table->getDatabase()->getClassMapper()->getClassForRecord($tableName)];
-            $columnOrdinalMap = [];
-            $records = [];
-            $properties = [];
-            $cardinalities = [];
-            $recordSets = [];
-            $relatedRecords = [];
+        $tableName = $table->getName();
+        $joinedTables = [];
+        $recordClasses = [$tableName => $table->getDatabase()->getClassMapper()->getClassForRecord($tableName)];
+        $columnOrdinalMap = [];
+        $records = [];
+        $properties = [];
+        $cardinalities = [];
+        $recordSets = [];
+        $relatedRecords = [];
 
-            foreach ($table->getColumns() as $column) {
-                if ($column->isPrimaryKey()) {
-                    $primaryKeyOrdinals[$tableName][$column->getOrdinal()] = true;
-                }
-                $columnOrdinalMap[$tableName][$column->getOrdinal()] = $column->getName();
+        foreach ($table->getColumns() as $column) {
+            if ($column->isPrimaryKey()) {
+                $primaryKeyOrdinals[$tableName][$column->getOrdinal()] = true;
             }
+            $columnOrdinalMap[$tableName][$column->getOrdinal()] = $column->getName();
+        }
 
-            $offset = count($table->getColumns());
-            foreach ($joins as $join) {
-                if (isset($join['cardinality'])) {
-                    $joinedTableName = $join['table'];
-                    $joinedTable = $table->getDatabase()->getTable($joinedTableName);
-                    $joinedTables[] = $joinedTable;
-                    $recordClasses[$joinedTableName] = $joinedTable->getDatabase()->getClassMapper()->getClassForRecord($joinedTableName);
+        $offset = count($table->getColumns());
+        foreach ($query->getJoins() as $join) {
+            if (isset($join['cardinality'])) {
+                $joinedTableName = $join['table'];
+                $joinedTable = $table->getDatabase()->getTable($joinedTableName);
+                $joinedTables[] = $joinedTable;
+                $recordClasses[$joinedTableName] = $joinedTable->getDatabase()->getClassMapper()->getClassForRecord($joinedTableName);
 
-                    foreach ($joinedTable->getColumns() as $column) {
-                        if ($column->isPrimaryKey()) {
-                            $primaryKeyOrdinals[$joinedTableName][$offset + $column->getOrdinal()] = true;
-                        }
-                        $columnOrdinalMap[$joinedTableName][$offset + $column->getOrdinal()] = $column->getName();
+                foreach ($joinedTable->getColumns() as $column) {
+                    if ($column->isPrimaryKey()) {
+                        $primaryKeyOrdinals[$joinedTableName][$offset + $column->getOrdinal()] = true;
                     }
-
-                    $cardinalities[$joinedTableName] = $join['cardinality'];
-                    if ($join['cardinality'] === Query::CARDINALITY_ONE_TO_MANY) {
-                        $properties[$joinedTableName] = [$joinedTableName];
-                    } else {
-                        $properties[$joinedTableName] = array_keys($join['on']);
-                    }
-
-                    $offset += count($joinedTable->getColumns());
-                }
-            }
-
-            while ($row = $result->fetch(\PDO::FETCH_NUM)) {
-                $id = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$tableName]));
-                if (!isset($records[$id])) {
-                    $recordClass = $recordClasses[$tableName];
-                    $data = array_combine($columnOrdinalMap[$tableName], array_intersect_key($row, $columnOrdinalMap[$tableName]));
-                    $record = new $recordClass($table, true, $data);
-                    $records[$id] = $record;
+                    $columnOrdinalMap[$joinedTableName][$offset + $column->getOrdinal()] = $column->getName();
                 }
 
-                foreach ($joinedTables as $joinedTable) {
-                    $joinedTableName = $joinedTable->getName();
-                    $joinedId = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$joinedTableName]));
-
-                    if (!isset($relatedRecords[$joinedTableName][$joinedId])) {
-                        $recordClass = $recordClasses[$joinedTableName];
-                        $data = array_combine($columnOrdinalMap[$joinedTableName], array_intersect_key($row, $columnOrdinalMap[$joinedTableName]));
-                        $relatedRecords[$joinedTableName][$joinedId] = new $recordClass($joinedTable, true, $data);
-                    }
-
-                    if ($cardinalities[$joinedTableName] === Query::CARDINALITY_ONE_TO_MANY) {
-                        if (!isset($recordSets[$joinedTableName][$id])) {
-                            $recordSets[$joinedTableName][$id] = $joinedTable->openRecordSet();
-                            $property = $properties[$joinedTableName][0];
-                            $records[$id]->{$property} = $recordSets[$joinedTableName][$id];
-                        }
-                        $recordSets[$joinedTableName][$id][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
-                    } else {
-                        foreach ($properties[$joinedTableName] as $property) {
-                            $records[$id]->{$property} = $relatedRecords[$joinedTableName][$joinedId];
-                        }
-                    }
+                $cardinalities[$joinedTableName] = $join['cardinality'];
+                if ($join['cardinality'] === Query::CARDINALITY_ONE_TO_MANY) {
+                    $properties[$joinedTableName] = [$joinedTableName];
+                } else {
+                    $properties[$joinedTableName] = array_keys($join['on']);
                 }
-            }
-        } else {
-            $recordClass = $table->getDatabase()->getClassMapper()->getClassForRecord($table->getName());
-            $args = array($table);
 
-            $records = array();
-            while ($record = $this->fetchObject($result, $recordClass, $args)) {
-                $records[$record->getID()] = $record;
+                $offset += count($joinedTable->getColumns());
             }
         }
+
+        while ($row = $result->fetch(\PDO::FETCH_NUM)) {
+            $id = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$tableName]));
+            if (!isset($records[$id])) {
+                $recordClass = $recordClasses[$tableName];
+                $data = array_combine($columnOrdinalMap[$tableName], array_intersect_key($row, $columnOrdinalMap[$tableName]));
+                $record = new $recordClass($table, true, $data);
+                $records[$id] = $record;
+            }
+
+            foreach ($joinedTables as $joinedTable) {
+                $joinedTableName = $joinedTable->getName();
+                $joinedId = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$joinedTableName]));
+
+                if (!isset($relatedRecords[$joinedTableName][$joinedId])) {
+                    $recordClass = $recordClasses[$joinedTableName];
+                    $data = array_combine($columnOrdinalMap[$joinedTableName], array_intersect_key($row, $columnOrdinalMap[$joinedTableName]));
+                    $relatedRecords[$joinedTableName][$joinedId] = new $recordClass($joinedTable, true, $data);
+                }
+
+                if ($cardinalities[$joinedTableName] === Query::CARDINALITY_ONE_TO_MANY) {
+                    if (!isset($recordSets[$joinedTableName][$id])) {
+                        $recordSets[$joinedTableName][$id] = $joinedTable->openRecordSet();
+                        $property = $properties[$joinedTableName][0];
+                        $records[$id]->{$property} = $recordSets[$joinedTableName][$id];
+                    }
+                    $recordSets[$joinedTableName][$id][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
+                } else {
+                    foreach ($properties[$joinedTableName] as $property) {
+                        $records[$id]->{$property} = $relatedRecords[$joinedTableName][$joinedId];
+                    }
+                }
+            }
+        }
+
         return $records;
     }
 

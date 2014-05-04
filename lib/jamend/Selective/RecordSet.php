@@ -151,20 +151,28 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
             $constraintName = $relatedTable->relatedTables[$this->getTable()->getName()];
             $constraint = $relatedTable->constraints[$constraintName];
             $cardinality = Query::CARDINALITY_ONE_TO_MANY;
-        } else if ($this->getTable()->relatedTables[$relatedTable->getName()]) {
+
+            for ($i = 0; $i < count($constraint['localColumns']); $i++) {
+                $relatedColumn = $this->getTable()->getColumn($constraint['relatedColumns'][$i]);
+                if (!$relatedColumn->isAllowNull()) {
+                    $joinType = 'inner';
+                }
+                $on[$constraint['relatedColumns'][$i]] = $constraint['localColumns'][$i];
+            }
+        } else if (isset($this->getTable()->relatedTables[$relatedTable->getName()])) {
             $constraintName = $this->getTable()->relatedTables[$relatedTable->getName()];
             $constraint = $this->getTable()->constraints[$constraintName];
             $cardinality = Query::CARDINALITY_MANY_TO_ONE;
-        } else {
-            throw new Exception("Table {$this->getTable()->getName()} is not related to {$relatedTable->getName()}");
-        }
 
-        for ($i = 0; $i < count($constraint['localColumns']); $i++) {
-            $relatedColumn = $relatedTable->getColumn($constraint['relatedColumns'][$i]);
-            if (!$relatedColumn->isAllowNull()) {
-                $joinType = 'inner';
+            for ($i = 0; $i < count($constraint['localColumns']); $i++) {
+                $localColumn = $this->getTable()->getColumn($constraint['localColumns'][$i]);
+                if (!$localColumn->isAllowNull()) {
+                    $joinType = 'inner';
+                }
+                $on[$constraint['localColumns'][$i]] = $constraint['relatedColumns'][$i];
             }
-            $on[$constraint['relatedColumns'][$i]] = $constraint['localColumns'][$i];
+        } else {
+            throw new \Exception("Table {$this->getTable()->getName()} is not related to {$relatedTable->getName()}");
         }
 
         $recordSet = $this->openRecordSet();

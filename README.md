@@ -1,4 +1,4 @@
-selective-orm
+Selective Object-Relational Mapper
 =============
 
 Selective ORM is a database abstraction layer that simplifies working with databases. It is fully object-oriented, and infers the database schema (tables/columns/relationships) automatically, so you don't have to repeat it in your code.
@@ -77,6 +77,7 @@ $books->{14}->delete();
 ```
 
 Relationships
+=============
 
 Selective can also simplify the use of foreign key constraints that are defined in the schema. Here are some examples:
 

@@ -396,7 +396,6 @@ abstract class PDO implements Driver
             return $records;
         }
 
-
         $joinedTables = [];
         $columnOrdinalMap = [];
         $properties = [];

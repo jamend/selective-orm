@@ -14,7 +14,7 @@ use \jamend\Selective\Column;
  */
 class MySQL extends PDO
 {
-    const CREATE_TABLE_SQL_COLUMNS_REGEX = '/  `(?<name>[^`]+?)` (?<type>[^\(]+?)(?:\((?<length>[^\)]+)\))?(?: unsigned)?(?: CHARACTER SET [a-z0-9\-_]+)?(?: COLLATE [a-z0-9\-_]+)?(?<allowNull> NOT NULL)?(?: DEFAULT (?<default>.+?))?(?<autoIncrement> AUTO_INCREMENT)? ?(?:COMMENT \'[^\']*\')?,?\s/';
+    const CREATE_TABLE_SQL_COLUMNS_REGEX = '/  `(?<name>[^`]+?)` (?<type>[^\(]+?)(?:\((?<length>[^\)]+)\))?(?: unsigned)?(?: CHARACTER SET [a-z0-9\-_]+)?(?: COLLATE [a-z0-9\-_]+)?(?<allowNull> NOT NULL)?(?: DEFAULT (?<default>.+?))?(?<autoIncrement> AUTO_INCREMENT)?(?: COMMENT \'[^\']*\')?[,|\n]/';
     const CREATE_TABLE_SQL_PRIMARY_KEY_REGEX = '/  PRIMARY KEY \(([^\)]+?)\),?/';
     const CREATE_TABLE_SQL_CONSTRAINT_REGEX = '/  CONSTRAINT `(?P<name>[^`]+?)` FOREIGN KEY \((?P<localColumns>[^)]+?)\) REFERENCES `?(?P<relatedTable>[^`]*?)`? \((?P<relatedColumns>[^)]+?)\)(?: ON DELETE [A-Z]+)?(?: ON UPDATE [A-Z]+)?,?/';
 
@@ -165,7 +165,7 @@ class MySQL extends PDO
                 if (isset($columnInfo['default']) && $columnInfo['default'] !== 'NULL') {
                     if ($columnInfo['default'] === '') {
                         $default = '';
-                    } else {
+                    } else if ($columnInfo['default'] !== 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP') {
                         // we need to parse the SQL default value
                         $defaultResult = $this->fetchAll('SELECT ' . $columnInfo['default']);
                         $default = current(current($defaultResult));
@@ -200,10 +200,9 @@ class MySQL extends PDO
 
             // parse primary keys
             preg_match(self::CREATE_TABLE_SQL_PRIMARY_KEY_REGEX, $createTableSql, $primaryKeys);
-            unset($primaryKeys[0]);
+            $primaryKeys = explode('`,`', trim($primaryKeys[1], '`'));
 
             foreach ($primaryKeys as $primaryKey) {
-                $primaryKey = trim($primaryKey, '`');
                 $table->primaryKeys[] = $primaryKey;
                 $table->columns[$primaryKey]->setPrimaryKey(true);
             }

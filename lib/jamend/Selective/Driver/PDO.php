@@ -466,15 +466,13 @@ abstract class PDO implements Driver
 
                 if ($cardinalities[$joinedTableName] === Query::CARDINALITY_ONE_TO_MANY) {
                     $property = $properties[$joinedTableName][0];
-                    if (!isset($recordSets[$joinedTableName][$id])) {
+                    if (!$asArray && !isset($recordSets[$joinedTableName][$id])) {
                         $recordSets[$joinedTableName][$id] = $joinedTable->openRecordSet();
-
-                        if (!$asArray) {
-                            $records[$id]->{$property} = $recordSets[$joinedTableName][$id];
-                        }
+                        $records[$id]->{$property} = $recordSets[$joinedTableName][$id];
                     }
+
                     if ($asArray) {
-                        $records[$id][$property][$joinedId] = $recordSets[$joinedTableName][$id];
+                        $records[$id][$property][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
                     } else {
                         $recordSets[$joinedTableName][$id][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
                     }

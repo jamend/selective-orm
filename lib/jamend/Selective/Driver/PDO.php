@@ -399,6 +399,7 @@ abstract class PDO implements Driver
         $joinedTables = [];
         $columnOrdinalMap = [];
         $properties = [];
+        $relatedProperties = [];
         $cardinalities = [];
         $recordSets = [];
         $relatedRecords = [];
@@ -431,6 +432,7 @@ abstract class PDO implements Driver
                 } else {
                     $properties[$joinedTableName] = array_keys($join['on']);
                 }
+                $relatedProperties[$joinedTableName] = array_values($join['on']);
 
                 $offset += count($joinedTable->getColumns());
             }
@@ -456,10 +458,17 @@ abstract class PDO implements Driver
                 if (!isset($relatedRecords[$joinedTableName][$joinedId])) {
                     $data = array_combine($columnOrdinalMap[$joinedTableName], array_intersect_key($row, $columnOrdinalMap[$joinedTableName]));
                     if ($asArray) {
+                        foreach ($relatedProperties[$joinedTableName] as $property) {
+                            $data[$property] = $record;
+                        }
+
                         $relatedRecords[$joinedTableName][$joinedId] = $data;
                     } else {
                         $recordClass = $recordClasses[$joinedTableName];
                         $relatedRecords[$joinedTableName][$joinedId] = new $recordClass($joinedTable, true, $data);
+                        foreach ($relatedProperties[$joinedTableName] as $property) {
+                            $relatedRecords[$joinedTableName][$joinedId]->{$property} = $record;
+                        }
                     }
                 }
 

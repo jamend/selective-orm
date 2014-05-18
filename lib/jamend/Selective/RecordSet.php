@@ -2,33 +2,28 @@
 namespace jamend\Selective;
 
 /**
- * Represents the records in a table in the database, that can be used like an
- * array
+ * Represents the records of a table in the database
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
+abstract class RecordSet implements \Iterator
 {
     /**
      * @var Table
      */
-    private $table;
+    protected $table;
     /**
      * @var Query
      */
-    private $query;
+    protected $query;
     /**
      * @var Driver
      */
-    private $driver;
-    /**
-     * @var array
-     */
-    private $records = array();
+    protected $driver;
     /**
      * @var bool
      */
-    private $dirty = true;
+    protected $dirty = true;
 
     /**
      * Make a record set for the given table
@@ -70,11 +65,23 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
 
     /**
      * Get a clone of this record set, ready for more filters/criteria
-     * @return \jamend\Selective\RecordSet
+     * @return RecordSet
      */
     public function openRecordSet()
     {
-        $recordSet = new self($this->getTable());
+        $class = get_class($this);
+        $recordSet = new $class($this->getTable());
+        $recordSet->query = clone $this->query;
+        return $recordSet;
+    }
+
+    /**
+     * Get an unbuffered RecordSet
+     * @return RecordSet\Unbuffered
+     */
+    public function unbuffered()
+    {
+        $recordSet = new RecordSet\Unbuffered($this->getTable());
         $recordSet->query = clone $this->query;
         return $recordSet;
     }
@@ -83,7 +90,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      * Return a new record set filtered by the given where clause
      * @param string $criteria where clause
      * @param mixed... $params
-     * @return \jamend\Selective\RecordSet
+     * @return RecordSet
      */
     public function where($criteria)
     {
@@ -98,7 +105,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      * Return a new record set filtered by the given having clause
      * @param string $criteria where clause
      * @param mixed... $params
-     * @return \jamend\Selective\RecordSet
+     * @return RecordSet
      */
     public function having($criteria)
     {
@@ -113,7 +120,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      * Return a new record set with the given limit clause
      * @param int $limit
      * @param int $offset
-     * @return \jamend\Selective\RecordSet
+     * @return RecordSet
      */
     public function limit($limit, $offset = 0)
     {
@@ -126,7 +133,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
      * Return a new record set order by the given field and direction
      * @param string $field
      * @param string $direction ASC or DESC
-     * @return \jamend\Selective\RecordSet
+     * @return RecordSet
      */
     public function orderBy($field, $direction = 'ASC')
     {
@@ -138,25 +145,23 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     /**
      * Pre-load related table with result set
      * @param string $tableName
-     * @return \jamend\Selective\RecordSet
+     * @throws \Exception
+     * @return RecordSet
      */
     public function with($tableName)
     {
         $on = [];
-        $joinType = 'left';
         $relatedTable = $this->getTable()->getDatabase()->getTable($tableName);
         $columns = array_keys($relatedTable->getColumns());
         $cardinality = null;
+        $joinType = 'left';
+
         if (isset($relatedTable->relatedTables[$this->getTable()->getName()])) {
             $constraintName = $relatedTable->relatedTables[$this->getTable()->getName()];
             $constraint = $relatedTable->constraints[$constraintName];
             $cardinality = Query::CARDINALITY_ONE_TO_MANY;
 
             for ($i = 0; $i < count($constraint['localColumns']); $i++) {
-                $relatedColumn = $this->getTable()->getColumn($constraint['relatedColumns'][$i]);
-                if (!$relatedColumn->isAllowNull()) {
-                    $joinType = 'inner';
-                }
                 $on[$constraint['relatedColumns'][$i]] = $constraint['localColumns'][$i];
             }
         } else if (isset($this->getTable()->relatedTables[$relatedTable->getName()])) {
@@ -183,7 +188,7 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     /**
      * Return a new result set using the given raw SQL
      * @param string $sql
-     * @return \jamend\Selective\RecordSet
+     * @return RecordSet
      */
     public function sql($sql)
     {
@@ -193,177 +198,11 @@ class RecordSet implements \IteratorAggregate, \ArrayAccess, \Countable
     }
 
     /**
-     * Get the record with the given ID from this record set
-     * @param string $name
-     * @return Record
-     */
-    public function __get($name)
-    {
-        $record = $this->getRecordByID($name);
-        if ($record) {
-            return $record;
-        } else {
-            trigger_error('Undefined property: ' . get_class($this) . '::$' . $name, E_USER_NOTICE);
-            return null;
-        }
-    }
-
-    /**
-     * Check if a record exists by its ID
-     * @param mixed $offset
-     * @return boolean
-     */
-    public function __isset($name)
-    {
-        $record = $this->getRecordByID($name);
-        if ($record) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Get the record with the given ID from this record set
-     * @param string $id
-     * @return Record
-     */
-    public function getRecordByID($id)
-    {
-        if (!array_key_exists($id, $this->records)) {
-            $query = clone $this->query;
-
-            // build a where clause to find a record by its ID
-            $idParts = explode(',', $id);
-            for ($i = 0; $i < count($idParts); $i++) {
-                $columnName = $this->getTable()->getPrimaryKeys()[$i];
-                $column = $this->getTable()->getColumn($columnName);
-                $query->addWhere("{$column->getBaseIdentifier()} = ?", array($idParts[$i]));
-            }
-
-            $records = $this->getDriver()->getRecords($this->getTable(), $query);
-            if (count($records) == 0) {
-                $this->records[$id] = null;
-            } else {
-                $this->records[$id] = current($records);
-            }
-        }
-
-        return $this->records[$id];
-    }
-
-    /**
-     * Load the records for this record set
-     */
-    private function load()
-    {
-        if ($this->dirty) {
-            $this->records = $this->getDriver()->getRecords($this->getTable(), $this->query);
-            $this->dirty = false;
-        }
-    }
-
-    /**
      * Tracks if the records have been loaded after a change in the query/criteria
      * @return boolean
      */
     public function isDirty()
     {
         return $this->dirty;
-    }
-
-    /**
-     * Get the first record from this record set
-     * @return Record
-     */
-    public function first()
-    {
-        $this->load();
-        reset($this->records);
-        return current($this->records);
-    }
-
-    /**
-     * Get the first record from this record set
-     * @return Record
-     */
-    public function last()
-    {
-        $this->load();
-        reset($this->records);
-        return end($this->records);
-    }
-
-    // Array iteration/traversal
-
-    /**
-     * Get the count of records
-     * @return int
-     */
-    public function count()
-    {
-        $this->load();
-        return count($this->records);
-    }
-
-    /**
-     * Check if a record exists by its ID
-     * @param mixed $offset
-     * @return boolean
-     */
-    public function offsetExists($offset)
-    {
-        $this->load();
-        return isset($this->records[$offset]);
-    }
-
-    /**
-     * Return this result set's data as an array of arrays
-     * @return array[]
-     */
-    public function toArray()
-    {
-        return $this->getDriver()->getRecords($this->getTable(), $this->query, true);
-    }
-
-    /**
-     * Get a record by its ID
-     * @param mixed $offset
-     * @return int
-     */
-    public function offsetGet($offset)
-    {
-        $this->load();
-        return isset($this->records[$offset]) ? $this->records[$offset] : null;
-    }
-
-    /**
-     * Get a record by ID
-     * @param mixed $offset
-     * @param mixed $value
-     */
-    public function offsetSet($offset, $value)
-    {
-        $this->dirty = false;
-        $this->records[$offset] = $value;
-    }
-
-    /**
-     * Remove a record by ID
-     * @param mixed $offset
-     */
-    public function offsetUnset($offset)
-    {
-        unset($this->records[$offset]);
-    }
-
-    /**
-     * Get an iterator for the records
-     * @return \ArrayIterator
-     */
-    public function getIterator()
-    {
-        $this->load();
-        return new \ArrayIterator($this->records);
     }
 }

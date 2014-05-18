@@ -109,9 +109,10 @@ interface Driver
      * Get a table's records for the given query
      * @param Table $table
      * @param Query $query
-     * @return Record[]
+     * @param bool $asArray return the records as arrays instead of objects
+     * @return Hydrator
      */
-    public function getRecords(Table $table, Query $query);
+    public function getHydrator(Table $table, Query $query, $asArray = false);
 
     /**
      * Update an existing record in the database

@@ -263,6 +263,7 @@ SQL
             );
 
             $tableClass = $database->getClassMapper()->getClassForTable($name);
+            /** @var Table $table */
             $table = new $tableClass($name, $database);
 
             foreach ($columns as $ordinal => $columnInfo) {

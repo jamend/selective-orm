@@ -139,6 +139,7 @@ class SQLite extends PDO
 
         if ($columns) {
             $tableClass = $database->getClassMapper()->getClassForTable($name);
+            /** @var Table $table */
             $table = new $tableClass($name, $database);
 
             foreach ($columns as $ordinal => $columnInfo) {

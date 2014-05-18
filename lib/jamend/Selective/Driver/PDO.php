@@ -7,6 +7,7 @@ use \jamend\Selective\Table;
 use \jamend\Selective\Record;
 use \jamend\Selective\Column;
 use \jamend\Selective\Query;
+use \jamend\Selective\Hydrator;
 
 /**
  * Abstract lower-level database access functions like connecting, queries, and
@@ -73,7 +74,8 @@ abstract class PDO implements Driver
 
     /**
      * Build a jamend\Selective\Table by name
-     * @param string $objectIdentifier
+     * @param Database $database
+     * @param string $name
      * @return string
      */
     public abstract function buildTable(Database $database, $name);
@@ -165,10 +167,11 @@ abstract class PDO implements Driver
      * @throws \Exception
      * @return \PDOStatement
      */
-    protected function query($sql, $params = null)
+    public function query($sql, $params = null)
     {
         $stmt = $this->pdo->prepare($sql);
 
+        $startTime = 0;
         if ($this->isProfiling()) {
             $startTime = microtime(true);
         }
@@ -221,14 +224,16 @@ abstract class PDO implements Driver
     {
         $columns = '';
         foreach ($table->getColumns() as $column) {
-            $columns .= ", {$column->getSQLExpression()}";
+            $columns .= ",\n\t{$column->getSQLExpression()}";
         }
-        return substr($columns, 2); // remove first ', '
+        return substr($columns, 3); // remove first ', '
     }
 
     /**
      * Build SQL FROM clause
+     * @param Query $query
      * @param Table $table
+     * @param string &$columns
      * @return string
      */
     protected function buildFromClause(Query $query, Table $table, &$columns)
@@ -236,15 +241,15 @@ abstract class PDO implements Driver
         $from = $table->getFullIdentifier();
         foreach ($query->getJoins() as $join) {
             if ($join['type'] == 'left') {
-                $from .= ' LEFT JOIN ';
+                $from .= "\n\tLEFT JOIN ";
             } else {
-                $from .= ' INNER JOIN ';
+                $from .= "\n\tINNER JOIN ";
             }
             $rightSideTable = $table->getDatabase()->getTable($join['table']);
             if (!empty($join['columns'])) {
                 foreach ($join['columns'] as $columnName) {
                     $column = $rightSideTable->getColumn($columnName);
-                    $columns .= ", {$column->getSQLExpression()}";
+                    $columns .= ",\n\t{$column->getSQLExpression()}";
                 }
             }
             $from .= $rightSideTable->getFullIdentifier();
@@ -258,7 +263,7 @@ abstract class PDO implements Driver
             foreach ($join['on'] as $leftSide => $rightSide) {
                 $on .= ' AND ' . $table->getFullIdentifier() . '.' . $leftSide . ' = ' . $rightSideTableReference . '.' . $rightSide;
             }
-            $from .= ' ON (' . substr($on, 5) . ')';
+            $from .= "\n\t\tON (" . substr($on, 5) . ')';
         }
         return $from;
     }
@@ -273,11 +278,11 @@ abstract class PDO implements Driver
     {
         $where = '';
         foreach ($query->getWhere() as $condition) {
-            $where .= ' AND (' . $condition[0] . ')';
+            $where .= "\n\tAND (" . $condition[0] . ')';
             if (!empty($condition[1])) $params = array_merge($params, $condition[1]);
         }
         if ($where) {
-            return ' WHERE ' . substr($where, 5); // replace first AND with WHERE
+            return "\nWHERE\n\t" . substr($where, 6); // replace first AND with WHERE
         } else {
             return '';
         }
@@ -293,11 +298,11 @@ abstract class PDO implements Driver
     {
         $having = '';
         foreach ($query->getHaving() as $havingClause) {
-            $having .= ' AND (' . $havingClause[0] . ')';
+            $having .= "\n\tAND (" . $havingClause[0] . ')';
             if (!empty($havingClause[1])) $params = array_merge($params, $havingClause[1]);
         }
         if ($having) {
-            return ' HAVING ' . substr($having, 5); // replace first AND with HAVING
+            return "\nHAVING\n\t" . substr($having, 6); // replace first AND with HAVING
         } else {
             return '';
         }
@@ -312,10 +317,10 @@ abstract class PDO implements Driver
     {
         $orderBy = '';
         foreach ($query->getOrderBy() as $fieldAndDirection) {
-            $orderBy .= ', ' . $fieldAndDirection[0] . ' ' . $fieldAndDirection[1];
+            $orderBy .= ',\n\t' . $fieldAndDirection[0] . ' ' . $fieldAndDirection[1];
         }
         if ($orderBy) {
-            return ' ORDER BY ' . substr($orderBy, 2); // remove first ", "
+            return "\nORDER BY\n\t" . substr($orderBy, 3); // remove first ", "
         } else {
             return '';
         }
@@ -329,7 +334,7 @@ abstract class PDO implements Driver
     protected function buildLimitClause(Query $query)
     {
         if ($limitClause = $query->getLimit()) {
-            return ' LIMIT ' . $limitClause[1] . ', ' . $limitClause[0];
+            return "\nLIMIT " . $limitClause[1] . ', ' . $limitClause[0];
         } else {
             return '';
         }
@@ -352,7 +357,7 @@ abstract class PDO implements Driver
         $limit = $this->buildLimitClause($query);
 
         // assemble query
-        return "SELECT {$columns} FROM {$from}{$where}{$having}{$orderBy}{$limit}";
+        return "SELECT\n\t{$columns}\nFROM\n\t{$from}{$where}{$having}{$orderBy}{$limit}";
     }
 
     /**
@@ -360,143 +365,11 @@ abstract class PDO implements Driver
      * @param Table $table
      * @param Query $query
      * @param bool $asArray return the records as arrays instead of objects
-     * @return Record[]
+     * @return Hydrator
      */
-    public function getRecords(Table $table, Query $query, $asArray = false)
+    public function getHydrator(Table $table, Query $query, $asArray = false)
     {
-        $params = array();
-
-        $tableName = $table->getName();
-        if (!$asArray) $recordClasses = [$tableName => $table->getDatabase()->getClassMapper()->getClassForRecord($tableName)];
-        $records = [];
-
-        $rawSql = $query->getRawSql();
-        if ($rawSql === null) {
-            $sql = $this->buildSQL($table, $query, $params);
-            $result = $this->query($sql, $params);
-        } else {
-            $sql = $rawSql;
-            $result = $this->query($sql, $params);
-
-            while ($data = $result->fetch(\PDO::FETCH_ASSOC)) {
-                if ($asArray) {
-                    $records[] = $data;
-                } else {
-                    $recordClass = $recordClasses[$tableName];
-                    $record = new $recordClass($table, true, $data);
-                    $id = $record->getId();
-                    if ($id === null) {
-                        $records[] = $record;
-                    } else {
-                        $records[$id] = $record;
-                    }
-                }
-            }
-
-            return $records;
-        }
-
-        $joinedTables = [];
-        $columnOrdinalMap = [];
-        $properties = [];
-        $relatedProperties = [];
-        $cardinalities = [];
-        $recordSets = [];
-        $relatedRecords = [];
-
-        foreach ($table->getColumns() as $column) {
-            if ($column->isPrimaryKey()) {
-                $primaryKeyOrdinals[$tableName][$column->getOrdinal()] = true;
-            }
-            $columnOrdinalMap[$tableName][$column->getOrdinal()] = $column->getName();
-        }
-
-        $offset = count($table->getColumns());
-        foreach ($query->getJoins() as $join) {
-            if (isset($join['cardinality'])) {
-                $joinedTableName = $join['table'];
-                $joinedTable = $table->getDatabase()->getTable($joinedTableName);
-                $joinedTables[] = $joinedTable;
-                if (!$asArray) $recordClasses[$joinedTableName] = $joinedTable->getDatabase()->getClassMapper()->getClassForRecord($joinedTableName);
-
-                foreach ($joinedTable->getColumns() as $column) {
-                    if ($column->isPrimaryKey()) {
-                        $primaryKeyOrdinals[$joinedTableName][$offset + $column->getOrdinal()] = true;
-                    }
-                    $columnOrdinalMap[$joinedTableName][$offset + $column->getOrdinal()] = $column->getName();
-                }
-
-                $cardinalities[$joinedTableName] = $join['cardinality'];
-                if ($join['cardinality'] === Query::CARDINALITY_ONE_TO_MANY) {
-                    $properties[$joinedTableName] = [$joinedTableName];
-                } else {
-                    $properties[$joinedTableName] = array_keys($join['on']);
-                }
-                $relatedProperties[$joinedTableName] = array_values($join['on']);
-
-                $offset += count($joinedTable->getColumns());
-            }
-        }
-
-        while ($row = $result->fetch(\PDO::FETCH_NUM)) {
-            $id = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$tableName]));
-            if (!isset($records[$id])) {
-                $data = array_combine($columnOrdinalMap[$tableName], array_intersect_key($row, $columnOrdinalMap[$tableName]));
-                if ($asArray) {
-                    $record = $data;
-                } else {
-                    $recordClass = $recordClasses[$tableName];
-                    $record = new $recordClass($table, true, $data);
-                }
-                $records[$id] = $record;
-            }
-
-            foreach ($joinedTables as $joinedTable) {
-                $joinedTableName = $joinedTable->getName();
-                $joinedId = implode(',', array_intersect_key($row, $primaryKeyOrdinals[$joinedTableName]));
-
-                if (!isset($relatedRecords[$joinedTableName][$joinedId])) {
-                    $data = array_combine($columnOrdinalMap[$joinedTableName], array_intersect_key($row, $columnOrdinalMap[$joinedTableName]));
-                    if ($asArray) {
-                        foreach ($relatedProperties[$joinedTableName] as $property) {
-                            $data[$property] = $record;
-                        }
-
-                        $relatedRecords[$joinedTableName][$joinedId] = $data;
-                    } else {
-                        $recordClass = $recordClasses[$joinedTableName];
-                        $relatedRecords[$joinedTableName][$joinedId] = new $recordClass($joinedTable, true, $data);
-                        foreach ($relatedProperties[$joinedTableName] as $property) {
-                            $relatedRecords[$joinedTableName][$joinedId]->{$property} = $record;
-                        }
-                    }
-                }
-
-                if ($cardinalities[$joinedTableName] === Query::CARDINALITY_ONE_TO_MANY) {
-                    $property = $properties[$joinedTableName][0];
-                    if (!$asArray && !isset($recordSets[$joinedTableName][$id])) {
-                        $recordSets[$joinedTableName][$id] = $joinedTable->openRecordSet();
-                        $records[$id]->{$property} = $recordSets[$joinedTableName][$id];
-                    }
-
-                    if ($asArray) {
-                        $records[$id][$property][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
-                    } else {
-                        $recordSets[$joinedTableName][$id][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
-                    }
-                } else {
-                    foreach ($properties[$joinedTableName] as $property) {
-                        if ($asArray) {
-                            $records[$id][$property] = $relatedRecords[$joinedTableName][$joinedId];
-                        } else {
-                            $records[$id]->{$property} = $relatedRecords[$joinedTableName][$joinedId];
-                        }
-                    }
-                }
-            }
-        }
-
-        return $records;
+        return new PDO\Hydrator($this, $table, $query, $asArray);
     }
 
     /**
@@ -531,7 +404,7 @@ abstract class PDO implements Driver
         foreach ($record->getTable()->getColumns() as $columnName => $column) {
             if ($column->isAutoIncrement()) continue;
             $update .= ", {$column->getBaseIdentifier()} = ?";
-            $params[] = $column->getColumnDenormalizedValue($record->{$columnName});
+            $params[] = $column->getColumnDenormalizedValue($record->getRawPropertyValue($columnName));
         }
         $update = substr($update, 2); // remove first ', '
 
@@ -563,7 +436,7 @@ abstract class PDO implements Driver
             }
             $fields .= ", {$column->getBaseIdentifier()}";
             $values .= ', ?';
-            $params[] = $column->getColumnDenormalizedValue($record->{$columnName});
+            $params[] = $column->getColumnDenormalizedValue($record->getRawPropertyValue($columnName));
         }
         $fields = substr($fields, 2); // remove first ', '
         $values = substr($values, 2); // remove first ', '

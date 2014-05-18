@@ -33,7 +33,7 @@ class Record
             }
         }
         foreach ($table->getForeignKeys() as $localColumn => $foreignKey) {
-            if (isset($this->{$localColumn})) {
+            if (property_exists($this, $localColumn)) {
                 $this->_meta['foreignRecords'][$localColumn] = $this->{$localColumn};
                 // unset the property, so that the magic __getter will be invoked
                 unset($this->{$localColumn});
@@ -170,9 +170,28 @@ class Record
     public function __get($name)
     {
         if (($table = $this->getRelatedTable($name)) !== false) {
+            $this->$name = $table;
             return $table;
         } else if (($foreignRecord = $this->getForeignRecord($name)) !== false) {
+            $this->$name = $foreignRecord;
             return $foreignRecord;
+        } else {
+            trigger_error('Undefined property: ' . get_class($this) . '::$' . $name, E_USER_NOTICE);
+            return null;
+        }
+    }
+
+    /**
+     * Get the raw value for a property
+     * @param string $name
+     * @return mixed
+     */
+    public function getRawPropertyValue($name)
+    {
+        if (property_exists($this, $name)) {
+            return $this->{$name};
+        } else if (array_key_exists($name, $this->_meta['foreignRecords'])) {
+            return $this->_meta['foreignRecords'][$name];
         } else {
             trigger_error('Undefined property: ' . get_class($this) . '::$' . $name, E_USER_NOTICE);
             return null;

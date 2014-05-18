@@ -6,7 +6,7 @@ namespace jamend\Selective;
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class Table extends RecordSet
+class Table extends RecordSet\Buffered
 {
     private $name;
     /**
@@ -16,15 +16,11 @@ class Table extends RecordSet
     /**
      * @var Column[]
      */
-    public $columns = array();
-    public $primaryKeys = array();
-    public $foreignKeys = array();
-    public $relatedTables = array();
-    public $constraints = array();
-    /**
-     * @var Driver
-     */
-    private $driver;
+    public $columns = [];
+    public $primaryKeys = [];
+    public $foreignKeys = [];
+    public $relatedTables = [];
+    public $constraints = [];
 
     /**
      * Get a table to match the one with the given name in the database
@@ -41,21 +37,23 @@ class Table extends RecordSet
     }
 
     /**
-     * Get the driver
-     * @return \jamend\Selective\Driver
-     */
-    public function getDriver()
-    {
-        return $this->driver;
-    }
-
-    /**
      * Get the table of this
      * @return \jamend\Selective\Table
      */
     public function getTable()
     {
         return $this;
+    }
+
+    /**
+     * Get a clone of this record set, ready for more filters/criteria
+     * @return RecordSet
+     */
+    public function openRecordSet()
+    {
+        $recordSet = new RecordSet\Buffered($this->getTable());
+        $recordSet->query = clone $this->query;
+        return $recordSet;
     }
 
     /**
@@ -141,15 +139,79 @@ class Table extends RecordSet
     }
 
     /**
+     * Get the record with the given ID from this record set
+     * @param string $name
+     * @return Record
+     */
+    public function __get($name)
+    {
+        $record = $this->getRecordByID($name);
+        if ($record) {
+            return $record;
+        } else {
+            trigger_error('Undefined property: ' . get_class($this) . '::$' . $name, E_USER_NOTICE);
+            return null;
+        }
+    }
+
+    /**
+     * Check if a record exists by its ID
+     * @param mixed $offset
+     * @return boolean
+     */
+    public function __isset($name)
+    {
+        $record = $this->getRecordByID($name);
+        if ($record) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Get the record with the given ID from this record set
+     * @param string $id
+     * @return Record
+     */
+    public function getRecordByID($id)
+    {
+        if (!array_key_exists($id, $this->records)) {
+            // build a where clause to find a record by its ID
+            $idParts = explode(',', $id);
+            $where = [];
+            for ($i  = 0; $i < count($idParts); $i++) {
+                $columnName = $this->getTable()->getPrimaryKeys()[$i];
+                $column = $this->getTable()->getColumn($columnName);
+                $where[] = ["{$column->getBaseIdentifier()} = ?", [$idParts[$i]]];
+            }
+
+            $oldWhere = $this->query->getWhere();
+            $this->query->setWhere($where);
+            $hydrator = $this->getDriver()->getHydrator($this->getTable(), $this->query);
+            $record = $hydrator->getRecord();
+            $this->query->setWhere($oldWhere);
+
+            if ($record) {
+                $this->records[$id] = $record;
+            } else {
+                $this->records[$id] = null;
+            }
+        }
+
+        return $this->records[$id];
+    }
+
+    /**
      * Prepare a new Record to be saved in this table
      * @return Record
      */
     public function create()
     {
-        $data = [];
+        $record = new Record($this, false);
         foreach ($this->getColumns() as $columnName => $column) {
-            $data[$columnName] = $column->getDefault();
+            $record->{$columnName} = $column->getDefault();
         }
-        return new Record($this, false, $data);
+        return $record;
     }
 }

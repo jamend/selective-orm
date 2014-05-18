@@ -29,6 +29,15 @@ class Query
     }
 
     /**
+     * Set a where condition criteria/param pairs
+     * @param array $where
+     */
+    public function setWhere($where)
+    {
+        $this->where = $where;
+    }
+
+    /**
      * Get the where conditions
      * @return array[]
      */
@@ -45,6 +54,15 @@ class Query
     public function addHaving($criteria, $params)
     {
         $this->having[] = [$criteria, $params];
+    }
+
+    /**
+     * Set a having condition criteria/param pairs
+     * @param array $having
+     */
+    public function setHaving($having)
+    {
+        $this->having = $having;
     }
 
     /**
@@ -101,7 +119,7 @@ class Query
      * @param array $on column mapping for ON clause
      * @param string $alias optional alias for joined table
      * @param array $columns optional list of columns to include from joined table
-     * @param int $columns optional one of the CARDINALITY_ consts
+     * @param int $cardinality optional one of the CARDINALITY_ consts
      */
     public function addJoin($type, $table, $on, $alias = null, $columns = null, $cardinality = null)
     {

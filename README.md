@@ -3,6 +3,9 @@ Selective Object-Relational Mapper
 
 Selective ORM is a database abstraction layer that simplifies working with databases. It is fully object-oriented, and infers the database schema (tables/columns/relationships) automatically, so you don't have to repeat it in your code.
 
+* Build Status: [![Build Status](https://travis-ci.org/jamend/selective-orm.svg?branch=master)](https://travis-ci.org/jamend/selective-orm)
+* Coverage Status: [![Coverage Status](https://coveralls.io/repos/jamend/selective-orm/badge.png)](https://coveralls.io/r/jamend/selective-orm)
+
 Installing
 ==========
 

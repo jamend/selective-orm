@@ -13,7 +13,6 @@ class Query
 
     private $rawSql = null;
     private $where = [];
-    private $having = [];
     private $limit = null;
     private $orderBy = [];
     private $joins = [];
@@ -44,34 +43,6 @@ class Query
     public function getWhere()
     {
         return $this->where;
-    }
-
-    /**
-     * Add a having condition
-     * @param string $criteria
-     * @param array $params
-     */
-    public function addHaving($criteria, $params)
-    {
-        $this->having[] = [$criteria, $params];
-    }
-
-    /**
-     * Set a having condition criteria/param pairs
-     * @param array $having
-     */
-    public function setHaving($having)
-    {
-        $this->having = $having;
-    }
-
-    /**
-     * Get the having conditions
-     * @return array[]
-     */
-    public function getHaving()
-    {
-        return $this->having;
     }
 
     /**

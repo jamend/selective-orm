@@ -102,21 +102,6 @@ abstract class RecordSet implements \Iterator
     }
 
     /**
-     * Return a new record set filtered by the given having clause
-     * @param string $criteria where clause
-     * @param mixed... $params
-     * @return RecordSet
-     */
-    public function having($criteria)
-    {
-        $params = func_get_args();
-        $criteria = array_shift($params);
-        $recordSet = $this->openRecordSet();
-        $recordSet->query->addHaving($criteria, $params);
-        return $recordSet;
-    }
-
-    /**
      * Return a new record set with the given limit clause
      * @param int $limit
      * @param int $offset

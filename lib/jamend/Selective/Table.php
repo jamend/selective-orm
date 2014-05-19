@@ -139,7 +139,7 @@ class Table extends RecordSet\Buffered
     }
 
     /**
-     * Get the record with the given ID from this record set
+     * Get the record with the given ID from this table
      * @param string $name
      * @return Record
      */
@@ -156,7 +156,7 @@ class Table extends RecordSet\Buffered
 
     /**
      * Check if a record exists by its ID
-     * @param mixed $offset
+     * @param mixed $name
      * @return boolean
      */
     public function __isset($name)
@@ -170,7 +170,7 @@ class Table extends RecordSet\Buffered
     }
 
     /**
-     * Get the record with the given ID from this record set
+     * Get the record with the given ID from this table
      * @param string $id
      * @return Record
      */
@@ -183,7 +183,7 @@ class Table extends RecordSet\Buffered
             for ($i  = 0; $i < count($idParts); $i++) {
                 $columnName = $this->getTable()->getPrimaryKeys()[$i];
                 $column = $this->getTable()->getColumn($columnName);
-                $where[] = ["{$column->getBaseIdentifier()} = ?", [$idParts[$i]]];
+                $where[] = ["{$column->getFullIdentifier()} = ?", [$idParts[$i]]];
             }
 
             $oldWhere = $this->query->getWhere();

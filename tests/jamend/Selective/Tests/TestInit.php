@@ -12,8 +12,6 @@ function autoload($className)
 
     if ($path = stream_resolve_include_path($classPath)) {
         return require_once($path);
-    } else if ($path = stream_resolve_include_path(implode('/', explode('_', $className)) . '.php')) {
-        return require_once($path);
     } else {
         return false;
     }

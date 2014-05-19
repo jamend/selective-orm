@@ -31,6 +31,7 @@ class Hydrator implements \jamend\Selective\Hydrator
     /** @var array */
     private $currentRow;
     private $currentId;
+    private $rawSqlId = 0;
 
     /**
      * @param PDO $driver
@@ -114,6 +115,8 @@ class Hydrator implements \jamend\Selective\Hydrator
         }
 
         if ($this->rawSql) {
+            $id = $this->rawSqlId;
+            $this->rawSqlId++;
             if ($this->asArray) {
                 $row = $this->currentRow;
                 $this->fetchNextRow();

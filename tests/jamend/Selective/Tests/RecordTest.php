@@ -1,0 +1,150 @@
+<?php
+namespace jamend\Selective\Tests;
+
+class RecordTest extends \PHPUnit_Framework_TestCase
+{
+    use TestHelper;
+
+    public function testExists()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'};
+
+        $id = 1;
+        $record = $recordSet->{$id};
+        $this->assertTrue($record->exists());
+
+        $record->delete();
+        $this->assertFalse($record->exists());
+
+        $record = $recordSet->create();
+        $this->assertFalse($record->exists());
+    }
+
+    public function testToArray()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'};
+        $id = 1;
+        $record = $recordSet->{$id};
+        $asArray = $record->toArray();
+        $this->assertTrue(is_array($asArray));
+        $this->assertEquals($asArray['idAuthor'], '1');
+    }
+
+    public function testGetId()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'};
+        $id = 1;
+        $record = $recordSet->{$id};
+        $this->assertEquals($record->getId(), $id);
+    }
+
+    public function testSave()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'};
+
+        // update
+        $id = 1;
+        $record = $recordSet->{$id};
+        $record->title = 'A New Title';
+        $this->assertTrue($record->save());
+
+        // insert
+        $record = $recordSet->create();
+        $record->title = 'Third time\'s the charm';
+        $record->idAuthor = 1;
+        $record->isbn = '12345-6791';
+
+        $this->assertTrue($record->save());
+        $this->assertNotNull($record->getId());
+    }
+
+    public function testDelete()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'};
+
+        $id = 1;
+        $record = $recordSet->{$id};
+        $this->assertTrue($record->delete());
+    }
+
+    public function testExisted()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'};
+
+        $id = 1;
+        $record = $recordSet->{$id};
+        $this->assertTrue($record->existed());
+
+        $record->delete();
+        $this->assertTrue($record->existed());
+
+        $record = $recordSet->create();
+        $record->title = 'Third time\'s the charm';
+        $record->idAuthor = 1;
+        $record->isbn = '12345-6791';
+        $record->save();
+        $this->assertFalse($record->existed());
+    }
+
+    public function testOneToMany()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Authors'};
+        $idAuthor = 1;
+        $author = $recordSet->{$idAuthor};
+
+        $this->assertTrue($author->hasRelatedTable('Books'));
+        $this->assertFalse($author->hasRelatedTable('Authors'));
+        $this->assertFalse($author->hasRelatedTable('IDontExist'));
+        $this->assertFalse(isset($author->{'IDontExist'}));
+
+        // explicit method
+        $books = $author->getRelatedTable('Books');
+        $this->assertInstanceOf('jamend\Selective\RecordSet', $books);
+        $this->assertFalse($author->getRelatedTable('Authors'));
+        $this->assertFalse($author->getRelatedTable('IDontExist'));
+
+        // magic getter
+        $count = 0;
+        foreach ($author->Books as $idBook => $book) {
+            /** @var \jamend\Selective\Record $book */
+            $count++;
+            $this->assertInstanceOf('jamend\Selective\Record', $book);
+            $this->assertEquals($book->getRawPropertyValue('idAuthor'), $author->getId());
+        }
+        $this->assertEquals($count, 1);
+    }
+
+    public function testManyToOne()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'};
+        $id = 1;
+        $book = $recordSet->{$id};
+
+        $this->assertTrue($book->hasForeignRecord('idAuthor'));
+        $this->assertFalse($book->hasForeignRecord('idBook'));
+        $this->assertFalse($book->hasForeignRecord('idIDontExist'));
+        $this->assertFalse(isset($book->{'idIDontExist'}));
+
+        // explicit method
+        $author = $book->getForeignRecord('idAuthor');
+        $this->assertInstanceOf('jamend\Selective\Record', $author);
+        $this->assertFalse($book->getForeignRecord('idBook'));
+        $this->assertFalse($book->getForeignRecord('idIDontExist'));
+
+        // magic getter
+        $author = $book->idAuthor;
+        $idAuthor = $book->getRawPropertyValue('idAuthor');
+        $this->assertInstanceOf('jamend\Selective\Record', $author);
+        $this->assertEquals($author->getTable()->getName(), 'Authors');
+        $this->assertEquals($author->getId(), $idAuthor);
+
+    }
+}

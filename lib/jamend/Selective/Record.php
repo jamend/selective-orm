@@ -95,7 +95,7 @@ class Record
      * values are joined by commas
      * @return string
      */
-    public function getID()
+    public function getId()
     {
         $id = '';
         foreach ($this->getTable()->getPrimaryKeys() as $columnName) {
@@ -244,10 +244,10 @@ class Record
             $affectedRows = $this->getDriver()->updateRecord($this);
         } else {
             $affectedRows = $this->getDriver()->insertRecord($this);
+            $this->_meta['exists'] = $affectedRows === 1;
         }
 
-        $this->_meta['exists'] = $affectedRows !== false;
-        return $this->_meta['exists'];
+        return $affectedRows === 1;
     }
 
     /**

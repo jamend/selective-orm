@@ -3,6 +3,7 @@ namespace jamend\Selective\RecordSet;
 
 use jamend\Selective\RecordSet;
 use jamend\Selective\Record;
+use jamend\Selective\Hydrator;
 
 /**
  * Represents the records in a table in the database that can be iterated over
@@ -18,7 +19,7 @@ class Unbuffered extends RecordSet
     private $id;
 
     /**
-     * @var Record[]
+     * @var Hydrator
      */
     protected $hydrator = [];
 

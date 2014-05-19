@@ -134,13 +134,12 @@ class Sqlsrv extends Driver\PDO
         $columns = $this->buildColumnList($table);
         $from = $this->buildFromClause($query, $table, $columns);
         $where = $this->buildWhereClause($query, $params);
-        $having = $this->buildHavingClause($query, $params);
 
         $orderBy = $this->buildOrderByClause($query);
 
         if ($limitClause = $query->getLimit()) {
             if (empty($limitClause[1])) {
-                $sql = "SELECT TOP {$limitClause[0]} {$columns} FROM {$from}{$where}{$having}{$orderBy}";
+                $sql = "SELECT TOP {$limitClause[0]} {$columns} FROM {$from}{$where}{$orderBy}";
             } else {
                 $primaryKeys = '';
                 $outerColumns = '';
@@ -152,7 +151,7 @@ class Sqlsrv extends Driver\PDO
                 }
                 $primaryKeys = substr($primaryKeys, 2); // remove first ', '
                 $outerColumns = substr($outerColumns, 2); // remove first ', '
-                $data = "SELECT {$columns}, ROW_NUMBER() OVER (ORDER BY {$primaryKeys}) AS [_rowCount] FROM {$from}{$where}{$having}{$orderBy}";
+                $data = "SELECT {$columns}, ROW_NUMBER() OVER (ORDER BY {$primaryKeys}) AS [_rowCount] FROM {$from}{$where}{$orderBy}";
 
                 $to = $limitClause[0] + $limitClause[1];
                 $sql = <<<SQL
@@ -166,7 +165,7 @@ WHERE [_rowCount] BETWEEN {$limitClause[1]} AND {$to}
 SQL;
             }
         } else {
-            $sql = "SELECT {$columns} FROM {$from}{$where}{$having}{$orderBy}";
+            $sql = "SELECT {$columns} FROM {$from}{$where}{$orderBy}";
         }
 
         return $sql;

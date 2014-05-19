@@ -289,26 +289,6 @@ abstract class PDO implements Driver
     }
 
     /**
-     * Build SQL HAVING clause
-     * @param Query $query
-     * @param &array $params
-     * @return string
-     */
-    protected function buildHavingClause(Query $query, &$params)
-    {
-        $having = '';
-        foreach ($query->getHaving() as $havingClause) {
-            $having .= "\n\tAND (" . $havingClause[0] . ')';
-            if (!empty($havingClause[1])) $params = array_merge($params, $havingClause[1]);
-        }
-        if ($having) {
-            return "\nHAVING\n\t" . substr($having, 6); // replace first AND with HAVING
-        } else {
-            return '';
-        }
-    }
-
-    /**
      * Build SQL ORDER BY clause
      * @param Query $query
      * @return string
@@ -317,7 +297,7 @@ abstract class PDO implements Driver
     {
         $orderBy = '';
         foreach ($query->getOrderBy() as $fieldAndDirection) {
-            $orderBy .= ',\n\t' . $fieldAndDirection[0] . ' ' . $fieldAndDirection[1];
+            $orderBy .= ",\n\t" . $fieldAndDirection[0] . ' ' . $fieldAndDirection[1];
         }
         if ($orderBy) {
             return "\nORDER BY\n\t" . substr($orderBy, 3); // remove first ", "
@@ -352,12 +332,11 @@ abstract class PDO implements Driver
         $columns = $this->buildColumnList($table);
         $from = $this->buildFromClause($query, $table, $columns);
         $where = $this->buildWhereClause($query, $params);
-        $having = $this->buildHavingClause($query, $params);
         $orderBy = $this->buildOrderByClause($query);
         $limit = $this->buildLimitClause($query);
 
         // assemble query
-        return "SELECT\n\t{$columns}\nFROM\n\t{$from}{$where}{$having}{$orderBy}{$limit}";
+        return "SELECT\n\t{$columns}\nFROM\n\t{$from}{$where}{$orderBy}{$limit}";
     }
 
     /**
@@ -476,7 +455,7 @@ abstract class PDO implements Driver
 
     /**
      * Check if profiling is enabled
-     * @param bool $profiling
+     * @return bool
      */
     public function isProfiling()
     {

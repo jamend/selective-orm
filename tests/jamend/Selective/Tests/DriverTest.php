@@ -1,50 +1,18 @@
 <?php
 namespace jamend\Selective\Tests;
 
-abstract class DriverTest extends TestCase
+abstract class DriverTest extends \PHPUnit_Framework_TestCase
 {
-    private $database;
     private $driver;
-
-    /**
-     * @return string
-     */
-    abstract protected function getDriverClassName();
-
-    /**
-     * @return array
-     */
-    abstract protected function getDriverParameters();
 
     /**
      * @return \jamend\Selective\Database
      */
-    protected function getDatabase()
-    {
-        if (!isset($this->database)) {
-            $this->database = new \jamend\Selective\Database(
-                $GLOBALS['test_dbname'],
-                $this->getDriverClassName(),
-                $this->getDriverParameters()
-            );
-        }
-        return $this->database;
-    }
-
-    /**
-     * @return \jamend\Selective\Driver
-     */
-    protected function getDriver()
-    {
-        if (!isset($this->driver)) {
-            $this->driver = $this->getDatabase()->getDriver();
-        }
-        return $this->driver;
-    }
+    public abstract function getDb();
 
     public function testQuote()
     {
-        $driver = $this->getDriver();
+        $driver = $this->getDb()->getDriver();
         $this->assertSame($driver->quote(null), 'null');
         $this->assertSame($driver->quote(true), '1');
         $this->assertSame($driver->quote(false), '0');
@@ -58,8 +26,8 @@ abstract class DriverTest extends TestCase
 
     public function testGetTable()
     {
-        $driver = $this->getDriver();
-        $database = $this->getDatabase();
+        $driver = $this->getDb()->getDriver();
+        $database = $this->getDb();
         $table = $driver->getTable($database, 'Books');
 
         $this->assertInstanceOf('jamend\Selective\Table', $table);
@@ -93,5 +61,26 @@ abstract class DriverTest extends TestCase
             ),
             current($constraints)
         );
+    }
+
+    public function testProfiling()
+    {
+        $db = $this->getDb();
+        $driver = $db->getDriver();
+        $driver->setProfiling(true);
+        $db->Books->count();
+        $profilingData = $driver->getProfilingData();
+        $this->assertGreaterThan(1, count($profilingData));
+        $totals = $profilingData['total'];
+        $this->assertGreaterThan(0, $totals['time']);
+    }
+
+    /**
+     * @expectedException \Exception
+     */
+    public function testException()
+    {
+        $db = $this->getDb();
+        $db->Books->where('how do i sql')->count();
     }
 }

@@ -68,6 +68,33 @@ class Buffered extends RecordSet implements \ArrayAccess, \Countable
         return $records;
     }
 
+    /**
+     * Get the record with the given ID from this record set
+     * @param string $name
+     * @return Record
+     */
+    public function __get($name)
+    {
+        $this->load();
+        if (isset($this->records[$name])) {
+            return $this->records[$name];
+        } else {
+            trigger_error('Undefined property: ' . get_class($this) . '::$' . $name, E_USER_NOTICE);
+            return null;
+        }
+    }
+
+    /**
+     * Check if a record exists in this record set by its ID
+     * @param mixed $name
+     * @return boolean
+     */
+    public function __isset($name)
+    {
+        $this->load();
+        return isset($this->records[$name]);
+    }
+
     // Array iteration/traversal
 
     /**

@@ -27,7 +27,7 @@ Connecting to a database
 // first argument is the database name
 // second argument is the driver implementation class name
 // third argument is the parameter array for the driver
-$db = new \jamend\Selective\Database(
+$db = new \selective\ORM\Database(
 	'sample',
 	'PDO\MySQL', // driver class
 	['host' => 'localhost', 'username' => '...', 'password' => '...'] // PDO\MySQL parameters

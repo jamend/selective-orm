@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective\Tests;
+namespace selective\ORM\Tests;
 
 class UnbufferedRecordSetTest extends \PHPUnit_Framework_TestCase
 {
@@ -12,7 +12,7 @@ class UnbufferedRecordSetTest extends \PHPUnit_Framework_TestCase
 
         $count = 0;
         foreach ($recordSet as $id => $record) {
-            $this->assertInstanceOf('jamend\Selective\Record', $record);
+            $this->assertInstanceOf('selective\ORM\Record', $record);
             $count++;
         }
 
@@ -26,13 +26,13 @@ class UnbufferedRecordSetTest extends \PHPUnit_Framework_TestCase
 
         $firstCount = 0;
         foreach ($recordSet as $id => $record) {
-            $this->assertInstanceOf('jamend\Selective\Record', $record);
+            $this->assertInstanceOf('selective\ORM\Record', $record);
             $firstCount++;
         }
 
         $secondCount = 0;
         foreach ($recordSet as $id => $record) {
-            $this->assertInstanceOf('jamend\Selective\Record', $record);
+            $this->assertInstanceOf('selective\ORM\Record', $record);
             $secondCount++;
         }
 

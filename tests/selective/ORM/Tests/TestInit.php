@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective\Tests;
+namespace selective\ORM\Tests;
 
 define('PATH_TESTS', dirname(dirname(dirname(__DIR__))) . DIRECTORY_SEPARATOR);
 define('PATH_LIB', dirname(PATH_TESTS) . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR);
@@ -17,4 +17,4 @@ function autoload($className)
     }
 }
 
-spl_autoload_register('jamend\Selective\Tests\autoload');
+spl_autoload_register('selective\ORM\Tests\autoload');

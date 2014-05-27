@@ -1,7 +1,7 @@
 <?php
-namespace jamend\Selective\Tests\SQLite;
+namespace selective\ORM\Tests\SQLite;
 
-class SQLiteTest extends \jamend\Selective\Tests\DriverTest
+class SQLiteTest extends \selective\ORM\Tests\DriverTest
 {
     use TestHelper;
 }

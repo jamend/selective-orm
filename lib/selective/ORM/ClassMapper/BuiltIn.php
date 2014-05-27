@@ -1,7 +1,7 @@
 <?php
-namespace jamend\Selective\ClassMapper;
+namespace selective\ORM\ClassMapper;
 
-use \jamend\Selective\ClassMapper;
+use \selective\ORM\ClassMapper;
 
 /**
  * Maps table names to built-in Table Record classes
@@ -25,7 +25,7 @@ class BuiltIn implements ClassMapper
      */
     public function getClassForTable($tableName)
     {
-        return 'jamend\Selective\Table';
+        return 'selective\ORM\Table';
     }
 
     /**
@@ -36,6 +36,6 @@ class BuiltIn implements ClassMapper
      */
     public function getClassForRecord($tableName)
     {
-        return 'jamend\Selective\Record';
+        return 'selective\ORM\Record';
     }
 }

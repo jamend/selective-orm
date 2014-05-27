@@ -16,7 +16,7 @@
         "satooshi/php-coveralls": "dev-master"
     },
     "autoload": {
-        "psr-0": { "jamend\\Selective\\": "lib/" }
+        "psr-0": { "selective\\ORM\\": "lib/" }
     },
     "archive": {
         "exclude": [".gitignore", "vendor", "tests", "*phpunit.xml"]

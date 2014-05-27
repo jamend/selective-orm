@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective;
+namespace selective\ORM;
 
 /**
  * Represents a record in a table
@@ -72,7 +72,7 @@ class Record
 
     /**
      * Get the driver
-     * @return \jamend\Selective\Driver
+     * @return \selective\ORM\Driver
      */
     public function getDriver()
     {
@@ -113,7 +113,7 @@ class Record
     /**
      * Get a table related to this record by table name
      * @param string $tableName
-     * @return \jamend\Selective\Table|boolean
+     * @return \selective\ORM\Table|boolean
      */
     public function getRelatedTable($tableName)
     {
@@ -141,7 +141,7 @@ class Record
     /**
      * Get the related record by value of the given column name
      * @param string $columnName
-     * @return \jamend\Selective\Record|boolean
+     * @return \selective\ORM\Record|boolean
      */
     public function getForeignRecord($columnName)
     {
@@ -201,7 +201,7 @@ class Record
     /**
      * Checks if a table related to this record exists by table name
      * @param string $tableName
-     * @return \jamend\Selective\Table|boolean
+     * @return \selective\ORM\Table|boolean
      */
     public function hasRelatedTable($tableName)
     {

@@ -1,13 +1,13 @@
 <?php
-namespace jamend\Selective\Driver;
+namespace selective\ORM\Driver;
 
-use \jamend\Selective\Database;
-use \jamend\Selective\Driver;
-use \jamend\Selective\Table;
-use \jamend\Selective\Record;
-use \jamend\Selective\Column;
-use \jamend\Selective\Query;
-use \jamend\Selective\Hydrator;
+use \selective\ORM\Database;
+use \selective\ORM\Driver;
+use \selective\ORM\Table;
+use \selective\ORM\Record;
+use \selective\ORM\Column;
+use \selective\ORM\Query;
+use \selective\ORM\Hydrator;
 
 /**
  * Abstract lower-level database access functions like connecting, queries, and
@@ -73,7 +73,7 @@ abstract class PDO implements Driver
     public abstract function quoteObjectIdentifier($objectIdentifier);
 
     /**
-     * Build a jamend\Selective\Table by name
+     * Build a selective\ORM\Table by name
      * @param Database $database
      * @param string $name
      * @return string
@@ -81,7 +81,7 @@ abstract class PDO implements Driver
     public abstract function buildTable(Database $database, $name);
 
     /**
-     * Get a jamend\Selective\Table by name
+     * Get a selective\ORM\Table by name
      * @param string $name
      * @param Database $database
      * @return Table

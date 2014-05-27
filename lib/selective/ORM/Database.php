@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective;
+namespace selective\ORM;
 
 /**
  * Represents a database
@@ -44,7 +44,7 @@ class Database
         // load driver
         if ($driver{0} !== '\\') {
             // class is relative to this namespace
-            $driver = "\jamend\Selective\Driver\\{$driver}";
+            $driver = "\selective\ORM\Driver\\{$driver}";
         }
 
         $this->driver = new $driver();
@@ -57,10 +57,10 @@ class Database
             unset($classMapper['class']);
             if ($classMapperClass{0} !== '\\') {
                 // class is relative to this namespace
-                $classMapperClass = "\jamend\Selective\ClassMapper\\{$classMapperClass}";
+                $classMapperClass = "\selective\ORM\ClassMapper\\{$classMapperClass}";
             }
         } else {
-            $classMapperClass = "\jamend\Selective\ClassMapper\BuiltIn";
+            $classMapperClass = "\selective\ORM\ClassMapper\BuiltIn";
         }
 
         $this->classMapper = new $classMapperClass();
@@ -144,7 +144,7 @@ class Database
     /**
      * Get a Table object for the given name
      * @param String $name
-     * @return \jamend\Selective\Table
+     * @return \selective\ORM\Table
      */
     public function __get($name)
     {

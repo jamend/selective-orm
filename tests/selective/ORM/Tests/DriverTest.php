@@ -1,12 +1,12 @@
 <?php
-namespace jamend\Selective\Tests;
+namespace selective\ORM\Tests;
 
 abstract class DriverTest extends \PHPUnit_Framework_TestCase
 {
     private $driver;
 
     /**
-     * @return \jamend\Selective\Database
+     * @return \selective\ORM\Database
      */
     public abstract function getDb();
 
@@ -30,7 +30,7 @@ abstract class DriverTest extends \PHPUnit_Framework_TestCase
         $database = $this->getDb();
         $table = $driver->getTable($database, 'Books');
 
-        $this->assertInstanceOf('jamend\Selective\Table', $table);
+        $this->assertInstanceOf('selective\ORM\Table', $table);
 
         $columns = $table->getColumns();
 

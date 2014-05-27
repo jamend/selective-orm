@@ -1,8 +1,8 @@
 <?php
-namespace jamend\Selective\RecordSet;
+namespace selective\ORM\RecordSet;
 
-use jamend\Selective\RecordSet;
-use jamend\Selective\Record;
+use selective\ORM\RecordSet;
+use selective\ORM\Record;
 
 /**
  * Represents the records in a table in the database that can be used like an

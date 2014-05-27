@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective;
+namespace selective\ORM;
 
 /**
  * lower-level database access functions like connecting, queries, and
@@ -29,7 +29,7 @@ interface Driver
     public function getTables(Database $database);
 
     /**
-     * Get a jamend\Selective\Table by name
+     * Get a selective\ORM\Table by name
      * @param string $name
      * @param Database $database
      * @return Table

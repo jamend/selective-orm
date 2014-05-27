@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective;
+namespace selective\ORM;
 
 /**
  * Represents an SQL query

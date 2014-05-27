@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective;
+namespace selective\ORM;
 
 /**
  * Maps table names to table/record classes

@@ -1,8 +1,8 @@
 <?php
-namespace jamend\Selective\ClassMapper;
+namespace selective\ORM\ClassMapper;
 
-use \jamend\Selective\ClassMapper;
-use \jamend\Selective\Table;
+use \selective\ORM\ClassMapper;
+use \selective\ORM\Table;
 
 /**
  * Maps table names to table/record classes using provided callbacks

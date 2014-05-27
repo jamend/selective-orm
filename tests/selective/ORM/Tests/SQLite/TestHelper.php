@@ -1,14 +1,14 @@
 <?php
-namespace jamend\Selective\Tests\SQLite;
+namespace selective\ORM\Tests\SQLite;
 
 trait TestHelper
 {
     /**
-     * @return \jamend\Selective\Database
+     * @return \selective\ORM\Database
      */
     protected function getDB()
     {
-        $db = new \jamend\Selective\Database(
+        $db = new \selective\ORM\Database(
             $GLOBALS['test_dbname'],
             $this->getDriverClassName(),
             $this->getDriverParameters()

@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective;
+namespace selective\ORM;
 
 /**
  * Represents a table column
@@ -40,7 +40,7 @@ class Column
 
     /**
      * Get the driver
-     * @return \jamend\Selective\Driver
+     * @return \selective\ORM\Driver
      */
     public function getDriver()
     {

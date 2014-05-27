@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective\Tests;
+namespace selective\ORM\Tests;
 
 class RecordSetTest extends \PHPUnit_Framework_TestCase
 {
@@ -9,9 +9,9 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
     {
         $db = $this->getDB();
         $recordSet = $db->{'Books'}->openRecordSet();
-        $this->assertInstanceOf('jamend\Selective\Table', $recordSet->getTable());
-        $this->assertInstanceOf('jamend\Selective\Driver', $recordSet->getDriver());
-        $this->assertInstanceOf('jamend\Selective\Query', $recordSet->getQuery());
+        $this->assertInstanceOf('selective\ORM\Table', $recordSet->getTable());
+        $this->assertInstanceOf('selective\ORM\Driver', $recordSet->getDriver());
+        $this->assertInstanceOf('selective\ORM\Query', $recordSet->getQuery());
     }
 
     public function testGetRecordSet()
@@ -19,7 +19,7 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
         $db = $this->getDB();
         $recordSet = $db->{'Books'};
         $this->assertNotNull($recordSet);
-        $this->assertInstanceOf('jamend\Selective\RecordSet\Buffered', $recordSet);
+        $this->assertInstanceOf('selective\ORM\RecordSet\Buffered', $recordSet);
     }
 
     public function testOpenRecordSet()
@@ -29,12 +29,12 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
 
         $recordSet2 = $recordSet->openRecordSet();
         $this->assertNotNull($recordSet2);
-        $this->assertInstanceOf('jamend\Selective\RecordSet\Buffered', $recordSet2);
+        $this->assertInstanceOf('selective\ORM\RecordSet\Buffered', $recordSet2);
         $this->assertTrue($recordSet !== $recordSet2);
 
         $recordSet3 = $recordSet2->openRecordSet();
         $this->assertNotNull($recordSet3);
-        $this->assertInstanceOf('jamend\Selective\RecordSet\Buffered', $recordSet3);
+        $this->assertInstanceOf('selective\ORM\RecordSet\Buffered', $recordSet3);
         $this->assertTrue($recordSet2 !== $recordSet3);
     }
 
@@ -119,7 +119,7 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
 
         $record = $recordSet->first(1);
         $this->assertNotNull($record);
-        $this->assertInstanceOf('jamend\Selective\Record', $record);
+        $this->assertInstanceOf('selective\ORM\Record', $record);
         $this->assertEquals($record->title, 'My First Book');
 
         // as array
@@ -138,7 +138,7 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
         $db = $this->getDB();
         $table = $db->{'Authors'}->with('Books');
         $idAuthor = 1;
-        /** @var \jamend\Selective\Record $author */
+        /** @var \selective\ORM\Record $author */
         $author = $table->{$idAuthor};
 
         $this->assertTrue($author->hasRelatedTable('Books'));
@@ -148,16 +148,16 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
 
         // explicit method
         $books = $author->getRelatedTable('Books');
-        $this->assertInstanceOf('jamend\Selective\RecordSet', $books);
+        $this->assertInstanceOf('selective\ORM\RecordSet', $books);
         $this->assertFalse($author->getRelatedTable('Authors'));
         $this->assertFalse($author->getRelatedTable('IDontExist'));
 
         // magic getter
         $count = 0;
         foreach ($author->Books as $idBook => $book) {
-            /** @var \jamend\Selective\Record $book */
+            /** @var \selective\ORM\Record $book */
             $count++;
-            $this->assertInstanceOf('jamend\Selective\Record', $book);
+            $this->assertInstanceOf('selective\ORM\Record', $book);
             $this->assertEquals($book->getRawPropertyValue('idAuthor'), $author->getId());
         }
         $this->assertEquals($count, 1);
@@ -168,7 +168,7 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
         $db = $this->getDB();
         $table = $db->{'Books'}->with('Authors');
         $id = 1;
-        /** @var \jamend\Selective\Record $book */
+        /** @var \selective\ORM\Record $book */
         $book = $table->{$id};
 
         $this->assertTrue($book->hasForeignRecord('idAuthor'));
@@ -178,14 +178,14 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
 
         // explicit method
         $author = $book->getForeignRecord('idAuthor');
-        $this->assertInstanceOf('jamend\Selective\Record', $author);
+        $this->assertInstanceOf('selective\ORM\Record', $author);
         $this->assertFalse($book->getForeignRecord('idBook'));
         $this->assertFalse($book->getForeignRecord('idIDontExist'));
 
         // magic getter
         $author = $book->idAuthor;
         $idAuthor = $book->getRawPropertyValue('idAuthor');
-        $this->assertInstanceOf('jamend\Selective\Record', $author);
+        $this->assertInstanceOf('selective\ORM\Record', $author);
         $this->assertEquals($author->getTable()->getName(), 'Authors');
         $this->assertEquals($author->getId(), $idAuthor);
 

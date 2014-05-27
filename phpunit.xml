@@ -1,4 +1,4 @@
-<phpunit bootstrap="./tests/jamend/Selective/Tests/TestInit.php">
+<phpunit bootstrap="./tests/selective/ORM/Tests/TestInit.php">
 	<testsuites>
 		<testsuite name="Selective">
 		    <directory>tests/</directory>

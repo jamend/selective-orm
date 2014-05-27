@@ -1,17 +1,17 @@
 <?php
-namespace jamend\Selective\Driver\PDO;
+namespace selective\ORM\Driver\PDO;
 
-use \jamend\Selective\Driver\PDO;
-use \jamend\Selective\Table;
-use \jamend\Selective\Record;
-use \jamend\Selective\Query;
+use \selective\ORM\Driver\PDO;
+use \selective\ORM\Table;
+use \selective\ORM\Record;
+use \selective\ORM\Query;
 
 /**
  * Builds records for a given query
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class Hydrator implements \jamend\Selective\Hydrator
+class Hydrator implements \selective\ORM\Hydrator
 {
     private $table = false;
     private $asArray = false;

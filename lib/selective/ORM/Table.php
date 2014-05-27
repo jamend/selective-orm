@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective;
+namespace selective\ORM;
 
 /**
  * Represents a table in the database
@@ -38,7 +38,7 @@ class Table extends RecordSet\Buffered
 
     /**
      * Get the table of this
-     * @return \jamend\Selective\Table
+     * @return \selective\ORM\Table
      */
     public function getTable()
     {

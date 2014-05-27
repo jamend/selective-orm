@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective\Tests\Mocks;
+namespace selective\ORM\Tests\Mocks;
 
 class PDO extends \PDO
 {

@@ -1,7 +1,7 @@
 <?php
-namespace jamend\Selective\Tests\SQLite;
+namespace selective\ORM\Tests\SQLite;
 
-class UnbufferedRecordSetTest extends \jamend\Selective\Tests\UnbufferedRecordSetTest
+class UnbufferedRecordSetTest extends \selective\ORM\Tests\UnbufferedRecordSetTest
 {
     use TestHelper;
 }

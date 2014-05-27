@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective\Tests;
+namespace selective\ORM\Tests;
 
 class TableTest extends \PHPUnit_Framework_TestCase
 {
@@ -10,7 +10,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
         $db = $this->getDB();
         $table = $db->{'Books'};
         $this->assertNotNull($table);
-        $this->assertInstanceOf('jamend\Selective\Table', $table);
+        $this->assertInstanceOf('selective\ORM\Table', $table);
     }
 
     public function testBaseIdentifier()
@@ -54,7 +54,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
         $id = 1;
         $record = $table->getRecordByID($id);
         $this->assertNotSame(null, $record);
-        $this->assertInstanceOf('jamend\Selective\Record', $record);
+        $this->assertInstanceOf('selective\ORM\Record', $record);
         $this->assertEquals($record->getID(), $id);
     }
 
@@ -77,7 +77,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
         $id = 1;
         $record = $table->{$id};
         $this->assertNotSame(false, $record);
-        $this->assertInstanceOf('jamend\Selective\Record', $record);
+        $this->assertInstanceOf('selective\ORM\Record', $record);
         $this->assertEquals($record->getID(), $id);
     }
 
@@ -109,6 +109,6 @@ class TableTest extends \PHPUnit_Framework_TestCase
         $record = $table->create();
         $this->assertNotNull($record);
         $this->assertNull($record->getId());
-        $this->assertInstanceOf('jamend\Selective\Record', $record);
+        $this->assertInstanceOf('selective\ORM\Record', $record);
     }
 }

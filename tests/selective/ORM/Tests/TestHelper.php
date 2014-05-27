@@ -1,7 +1,7 @@
 <?php
-namespace jamend\Selective\Tests;
+namespace selective\ORM\Tests;
 
-use jamend\Selective\Database;
+use selective\ORM\Database;
 
 /*
  * TODO
@@ -15,6 +15,6 @@ trait TestHelper
 {
     protected function getDB()
     {
-        return new Database('test', '\jamend\Selective\Tests\Mocks\Driver', array());
+        return new Database('test', '\selective\ORM\Tests\Mocks\Driver', array());
     }
 }

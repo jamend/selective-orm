@@ -1,11 +1,11 @@
 <?php
-namespace jamend\Selective\Driver\PDO;
+namespace selective\ORM\Driver\PDO;
 
-use \jamend\Selective\Database;
-use \jamend\Selective\Driver;
-use \jamend\Selective\Table;
-use \jamend\Selective\Column;
-use \jamend\Selective\Query;
+use \selective\ORM\Database;
+use \selective\ORM\Driver;
+use \selective\ORM\Table;
+use \selective\ORM\Column;
+use \selective\ORM\Query;
 
 /**
  * Abstract lower-level database access functions like connecting, queries, and

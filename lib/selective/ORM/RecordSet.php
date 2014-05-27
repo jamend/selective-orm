@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective;
+namespace selective\ORM;
 
 /**
  * Represents the records of a table in the database
@@ -38,7 +38,7 @@ abstract class RecordSet implements \Iterator
 
     /**
      * Get the table of this
-     * @return \jamend\Selective\Table
+     * @return \selective\ORM\Table
      */
     public function getTable()
     {
@@ -47,7 +47,7 @@ abstract class RecordSet implements \Iterator
 
     /**
      * Get the query object
-     * @return \jamend\Selective\Query
+     * @return \selective\ORM\Query
      */
     public function getQuery()
     {
@@ -56,7 +56,7 @@ abstract class RecordSet implements \Iterator
 
     /**
      * Get the driver
-     * @return \jamend\Selective\Driver
+     * @return \selective\ORM\Driver
      */
     public function getDriver()
     {

@@ -1,5 +1,5 @@
 <?php
-namespace jamend\Selective\Tests;
+namespace selective\ORM\Tests;
 
 class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
 {
@@ -13,7 +13,7 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
         $reportedCount = $recordSet->count();
         $count = 0;
         foreach ($recordSet as $id => $record) {
-            $this->assertInstanceOf('jamend\Selective\Record', $record);
+            $this->assertInstanceOf('selective\ORM\Record', $record);
             $count++;
         }
 
@@ -28,7 +28,7 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
 
         $i = 0;
         foreach ($recordSet as $id => $record) {
-            $this->assertInstanceOf('jamend\Selective\Record', $record);
+            $this->assertInstanceOf('selective\ORM\Record', $record);
             switch ($i) {
                 case 0:
                     $this->assertEquals($id, 1);
@@ -50,13 +50,13 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
 
         $firstCount = 0;
         foreach ($recordSet as $id => $record) {
-            $this->assertInstanceOf('jamend\Selective\Record', $record);
+            $this->assertInstanceOf('selective\ORM\Record', $record);
             $firstCount++;
         }
 
         $secondCount = 0;
         foreach ($recordSet as $id => $record) {
-            $this->assertInstanceOf('jamend\Selective\Record', $record);
+            $this->assertInstanceOf('selective\ORM\Record', $record);
             $secondCount++;
         }
 
@@ -90,7 +90,7 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
         $db = $this->getDB();
         $table = $db->{'Books'};
         $this->assertTrue(isset($table[1]));
-        $this->assertInstanceOf('jamend\Selective\Record', $table[1]);
+        $this->assertInstanceOf('selective\ORM\Record', $table[1]);
         $this->assertFalse(isset($table[3]));
     }
 
@@ -102,7 +102,7 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
         $table[3] = $record;
         $this->assertFalse($table->isDirty());
         $this->assertTrue(isset($table[3]));
-        $this->assertInstanceOf('jamend\Selective\Record', $table[3]);
+        $this->assertInstanceOf('selective\ORM\Record', $table[3]);
     }
 
     public function testToArray()

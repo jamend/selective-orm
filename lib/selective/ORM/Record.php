@@ -247,6 +247,7 @@ class Record
             $this->_meta['exists'] = $affectedRows === 1;
         }
 
+        $this->getTable()->flagDirty();
         return $affectedRows === 1;
     }
 
@@ -258,6 +259,7 @@ class Record
     {
         $affectedRows = $this->getDriver()->deleteRecord($this);
         $this->_meta['exists'] = $affectedRows === false && $this->_meta['exists'];
+        $this->getTable()->flagDirty();
         return !$this->_meta['exists'];
     }
 

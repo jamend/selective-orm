@@ -146,7 +146,7 @@ class MySQL extends PDO
         $primaryKeys = array();
         $constraints = array();
 
-        $lowerCaseToActualTableNames = array();
+        $lowerToRealCaseTableNames = array();
         $actualTableNames = array();
         foreach ($this->getTables($database) as $tableName) {
             $actualTableNames[$tableName] = true;

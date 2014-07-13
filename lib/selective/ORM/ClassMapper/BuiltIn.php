@@ -30,8 +30,7 @@ class BuiltIn implements ClassMapper
 
     /**
      * Get a class for a record by its table's name
-     * @param Table $table
-     * @param string $id
+     * @param string $tableName
      * @return string
      */
     public function getClassForRecord($tableName)

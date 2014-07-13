@@ -24,6 +24,14 @@ class Database
      * @var string
      */
     private $prefix = '';
+    /**
+     * @var Table[]
+     */
+    private $tables = [];
+    /**
+     * @var bool
+     */
+    private $inTransaction = false;
 
     /**
      *
@@ -138,7 +146,11 @@ class Database
      */
     public function getTable($name)
     {
-        return $this->getDriver()->getTable($this, $name);
+        if (!isset($this->tables[$this->getName()][$name])) {
+            $this->tables[$this->getName()][$name] = $this->getDriver()->buildTable($this, $name);
+        }
+
+        return $this->tables[$this->getName()][$name];
     }
 
     /**
@@ -150,5 +162,44 @@ class Database
     {
         // Cache the table
         return $this->getTable($name);
+    }
+
+    /**
+     * Returns true if a transaction is open
+     * @return bool
+     */
+    public function isInTransaction()
+    {
+        return $this->inTransaction;
+    }
+
+    /**
+     * Starts a new transaction
+     */
+    public function startTransaction()
+    {
+        $this->inTransaction = true;
+        $this->getDriver()->startTransaction();
+    }
+
+    /**
+     * Commits the transaction
+     */
+    public function commit()
+    {
+        $this->inTransaction = false;
+        foreach ($this->tables as $table) {
+            $table->flagDirty();
+        }
+        $this->getDriver()->commit();
+    }
+
+    /**
+     * Rolls the transaction back
+     */
+    public function rollback()
+    {
+        $this->inTransaction = false;
+        $this->getDriver()->rollback();
     }
 }

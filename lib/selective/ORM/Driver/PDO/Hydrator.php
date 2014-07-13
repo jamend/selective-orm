@@ -13,7 +13,7 @@ use \selective\ORM\Query;
  */
 class Hydrator implements \selective\ORM\Hydrator
 {
-    private $table = false;
+    private $table;
     private $asArray = false;
     private $rawSql = false;
 
@@ -187,8 +187,10 @@ class Hydrator implements \selective\ORM\Hydrator
                         $record[$property][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
                     } else {
                         if (!isset($oneToManyRecordSets[$joinedTableName])) {
-                            $oneToManyRecordSets[$joinedTableName] = $joinedTable->openRecordSet();
-                            $record->{$property} = $oneToManyRecordSets[$joinedTableName];
+                            $recordSet = $joinedTable->openRecordSet();
+                            $recordSet->flagClean();
+                            $oneToManyRecordSets[$joinedTableName] = $recordSet;
+                            $record->{$property} = $recordSet;
                         }
                         $oneToManyRecordSets[$joinedTableName][$joinedId] = $relatedRecords[$joinedTableName][$joinedId];
                     }

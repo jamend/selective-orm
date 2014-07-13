@@ -34,7 +34,7 @@ interface Driver
      * @param Database $database
      * @return Table
      */
-    public function getTable(Database $database, $name);
+    public function buildTable(Database $database, $name);
 
     /**
      * Quote a value for use in SQL statements
@@ -115,6 +115,21 @@ interface Driver
     public function getHydrator(Table $table, Query $query, $asArray = false);
 
     /**
+     * Starts a new transaction
+     */
+    public function startTransaction();
+
+    /**
+     * Commits the transaction
+     */
+    public function commit();
+
+    /**
+     * Rolls the transaction back
+     */
+    public function rollback();
+
+    /**
      * Update an existing record in the database
      * @param Record $record
      * @return int number of affected rows, or false
@@ -143,7 +158,7 @@ interface Driver
 
     /**
      * Check if profiling is enabled
-     * @param bool $profiling
+     * @return bool
      */
     public function isProfiling();
 

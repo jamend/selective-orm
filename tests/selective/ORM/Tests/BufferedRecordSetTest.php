@@ -100,7 +100,6 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
         $table = $db->{'Books'};
         $record = $table->create();
         $table[3] = $record;
-        $this->assertFalse($table->isDirty());
         $this->assertTrue(isset($table[3]));
         $this->assertInstanceOf('selective\ORM\Record', $table[3]);
     }

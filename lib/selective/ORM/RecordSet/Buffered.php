@@ -16,6 +16,10 @@ class Buffered extends RecordSet implements \ArrayAccess, \Countable
      * @var Record[]
      */
     protected $records = [];
+    /**
+     * @var int
+     */
+    private $tableTransactionCountTracker = -1;
 
     /**
      * Load the records for this record set
@@ -28,7 +32,7 @@ class Buffered extends RecordSet implements \ArrayAccess, \Countable
             while (($record = $hydrator->getRecord($id)) !== false) {
                 $this->records[$id] = $record;
             }
-            $this->dirty = false;
+            $this->flagClean();
         }
     }
 
@@ -136,7 +140,7 @@ class Buffered extends RecordSet implements \ArrayAccess, \Countable
      */
     public function offsetSet($offset, $value)
     {
-        $this->dirty = false;
+        $this->load();
         $this->records[$offset] = $value;
     }
 
@@ -193,5 +197,22 @@ class Buffered extends RecordSet implements \ArrayAccess, \Countable
     {
         $this->load();
         reset($this->records);
+    }
+
+    /**
+     * Reset the dirty flag
+     */
+    public function flagClean()
+    {
+        $this->tableTransactionCountTracker = $this->getTable()->getTransactionCount();
+    }
+
+    /**
+     * Tracks if the records have been loaded after a change in the query/criteria
+     * @return boolean
+     */
+    public function isDirty()
+    {
+        return $this->tableTransactionCountTracker < $this->getTable()->getTransactionCount();
     }
 }

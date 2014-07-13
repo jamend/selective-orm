@@ -8,7 +8,14 @@ namespace selective\ORM;
  */
 class Table extends RecordSet\Buffered
 {
+    /**
+     * @var string
+     */
     private $name;
+    /**
+     * @var int
+     */
+    private $transactionCount = 0;
     /**
      * @var Database
      */
@@ -47,7 +54,7 @@ class Table extends RecordSet\Buffered
 
     /**
      * Get a clone of this record set, ready for more filters/criteria
-     * @return RecordSet
+     * @return RecordSet\Buffered
      */
     public function openRecordSet()
     {
@@ -213,5 +220,24 @@ class Table extends RecordSet\Buffered
             $record->{$columnName} = $column->getDefault();
         }
         return $record;
+    }
+
+    /**
+     * Increment the change counter
+     */
+    public function flagDirty()
+    {
+        if (!$this->getDatabase()->isInTransaction()) {
+            ++$this->transactionCount;
+        }
+    }
+
+    /**
+     * Get the number of changes that have been made to the table
+     * @return int
+     */
+    public function getTransactionCount()
+    {
+        return $this->transactionCount;
     }
 }

@@ -1,13 +1,16 @@
 <?php
 namespace selective\ORM\Tests\Mocks;
 
-class Driver extends \selective\ORM\Driver\PDO\MySQL
+use selective\ORM\Database;
+use selective\ORM\Driver\PDO\MySQL;
+
+class Driver extends MySQL
 {
     public function loadParameters($parameters)
     {
     }
 
-    public function connect(\selective\ORM\Database $database)
+    public function connect(Database $database)
     {
         $this->pdo = new PDO();
     }

@@ -1,14 +1,16 @@
 <?php
 namespace selective\ORM\Tests\SQLite;
 
+use selective\ORM\Database;
+
 trait TestHelper
 {
     /**
-     * @return \selective\ORM\Database
+     * @return Database
      */
     protected function getDB()
     {
-        $db = new \selective\ORM\Database(
+        $db = new Database(
             $GLOBALS['test_dbname'],
             $this->getDriverClassName(),
             $this->getDriverParameters()

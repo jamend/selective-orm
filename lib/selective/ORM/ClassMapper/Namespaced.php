@@ -1,9 +1,6 @@
 <?php
 namespace selective\ORM\ClassMapper;
 
-use \selective\ORM\Table;
-use \selective\ORM\Record;
-
 /**
  * Maps table names to table and record classes prefixed by a given namespace
  * @author Jonathan Amend <j.amend@gmail.com>
@@ -29,6 +26,7 @@ class Namespaced extends BuiltIn
     /**
      * Get the class for a table by name
      * @param string $tableName
+     * @throws \Exception
      * @return string
      */
     public function getClassForTable($tableName)
@@ -45,8 +43,8 @@ class Namespaced extends BuiltIn
 
     /**
      * Get a class for a record by its table's name
-     * @param Table $table
-     * @param string $id
+     * @param string $tableName
+     * @throws \Exception
      * @return string
      */
     public function getClassForRecord($tableName)

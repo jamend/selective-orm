@@ -20,10 +20,6 @@ abstract class RecordSet implements \Iterator
      * @var Driver
      */
     protected $driver;
-    /**
-     * @var bool
-     */
-    protected $dirty = true;
 
     /**
      * Make a record set for the given table
@@ -180,14 +176,5 @@ abstract class RecordSet implements \Iterator
         $recordSet = $this->openRecordSet();
         $recordSet->query->setRawSql($sql);
         return $recordSet;
-    }
-
-    /**
-     * Tracks if the records have been loaded after a change in the query/criteria
-     * @return boolean
-     */
-    public function isDirty()
-    {
-        return $this->dirty;
     }
 }

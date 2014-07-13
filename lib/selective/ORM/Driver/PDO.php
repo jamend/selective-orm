@@ -21,7 +21,6 @@ abstract class PDO implements Driver
      * @var \PDO
      */
     protected $pdo;
-    private $tables = [];
     private $profiling = false;
     private $profilingData = [];
 
@@ -79,21 +78,6 @@ abstract class PDO implements Driver
      * @return string
      */
     public abstract function buildTable(Database $database, $name);
-
-    /**
-     * Get a selective\ORM\Table by name
-     * @param string $name
-     * @param Database $database
-     * @return Table
-     */
-    public function getTable(Database $database, $name)
-    {
-        if (!isset($this->tables[$database->getName()][$name])) {
-            $this->tables[$database->getName()][$name] = $this->buildTable($database, $name);
-        }
-
-        return $this->tables[$database->getName()][$name];
-    }
 
     /**
      * Quote a value for use in SQL statements
@@ -367,6 +351,30 @@ abstract class PDO implements Driver
             $params[] = $record->{$columnName};
         }
         return substr($keyCriteria, 5); // remove first ' AND '
+    }
+
+    /**
+     * Starts a new transaction
+     */
+    public function startTransaction()
+    {
+        $this->pdo->beginTransaction();
+    }
+
+    /**
+     * Commits the transaction
+    */
+    public function commit()
+    {
+        $this->pdo->commit();
+    }
+
+    /**
+     * Rolls the transaction back
+    */
+    public function rollback()
+    {
+        $this->pdo->rollback();
     }
 
     /**

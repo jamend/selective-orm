@@ -3,8 +3,6 @@ namespace selective\ORM\Tests;
 
 abstract class DriverTest extends \PHPUnit_Framework_TestCase
 {
-    private $driver;
-
     /**
      * @return \selective\ORM\Database
      */
@@ -24,11 +22,11 @@ abstract class DriverTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($driver->quote('t\'est'), '"t\\\'est"');
     }
 
-    public function testGetTable()
+    public function testBuildTable()
     {
         $driver = $this->getDb()->getDriver();
         $database = $this->getDb();
-        $table = $driver->getTable($database, 'Books');
+        $table = $driver->buildTable($database, 'Books');
 
         $this->assertInstanceOf('selective\ORM\Table', $table);
 
@@ -61,6 +59,28 @@ abstract class DriverTest extends \PHPUnit_Framework_TestCase
             ),
             current($constraints)
         );
+    }
+
+    public function testTransactions()
+    {
+        $db = $this->getDb();
+        $recordSet = $db->{'Books'};
+
+        $oldCount = $recordSet->count();
+
+        $db->startTransaction();
+
+        $record = $recordSet->create();
+        $record->title = 'Test book';
+        $record->idAuthor = 1;
+        $record->isbn = '12345-6789';
+        $record->save();
+
+        $db->rollback();
+
+        $newCount = $recordSet->count();
+
+        $this->assertEquals($oldCount, $newCount);
     }
 
     public function testProfiling()

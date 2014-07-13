@@ -1,7 +1,9 @@
 <?php
 namespace selective\ORM\Tests\SQLite;
 
-class SQLiteTest extends \selective\ORM\Tests\DriverTest
+use selective\ORM\Tests\DriverTest;
+
+class SQLiteTest extends DriverTest
 {
     use TestHelper;
 }

@@ -55,7 +55,7 @@ SQL
 
     protected function getDriverClassName()
     {
-        return 'PDO\SQLite';
+        return 'SQLite';
     }
 
     protected function getDriverParameters()

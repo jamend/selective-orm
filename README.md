@@ -29,8 +29,8 @@ Connecting to a database
 // third argument is the parameter array for the driver
 $db = new \selective\ORM\Database(
 	'sample',
-	'PDO\MySQL', // driver class
-	['host' => 'localhost', 'username' => '...', 'password' => '...'] // PDO\MySQL parameters
+	'MySQL', // driver class
+	['host' => 'localhost', 'username' => '...', 'password' => '...'] // MySQL driver parameters
 );
 ```
 

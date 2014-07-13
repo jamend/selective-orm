@@ -1,9 +1,8 @@
 <?php
-namespace selective\ORM\Driver\PDO;
+namespace selective\ORM\Driver;
 
 use \selective\ORM\Database;
 use \selective\ORM\Driver;
-use \selective\ORM\Driver\PDO;
 use \selective\ORM\Table;
 use \selective\ORM\Column;
 
@@ -13,7 +12,7 @@ use \selective\ORM\Column;
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class SQLite extends PDO
+class SQLite extends Driver
 {
     private $file = ':memory:';
     /**

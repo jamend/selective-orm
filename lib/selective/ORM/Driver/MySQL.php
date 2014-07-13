@@ -1,8 +1,8 @@
 <?php
-namespace selective\ORM\Driver\PDO;
+namespace selective\ORM\Driver;
 
+use \selective\ORM\Driver;
 use \selective\ORM\Database;
-use \selective\ORM\Driver\PDO;
 use \selective\ORM\Table;
 use \selective\ORM\Column;
 
@@ -12,7 +12,7 @@ use \selective\ORM\Column;
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class MySQL extends PDO
+class MySQL extends Driver
 {
     const CREATE_TABLE_SQL_COLUMNS_REGEX = '/  `(?<name>[^`]+?)` (?<type>[^\(]+?)(?:\((?<length>[^\)]+)\))?(?: unsigned)?(?: CHARACTER SET [a-z0-9\-_]+)?(?: COLLATE [a-z0-9\-_]+)?(?<allowNull> NOT NULL)?(?: DEFAULT (?<default>.+?))?(?<autoIncrement> AUTO_INCREMENT)?(?: COMMENT \'[^\']*\')?[,|\n]/';
     const CREATE_TABLE_SQL_PRIMARY_KEY_REGEX = '/  PRIMARY KEY \(([^\)]+?)\),?/';

@@ -1,5 +1,5 @@
 <?php
-namespace selective\ORM\Driver\PDO;
+namespace selective\ORM\Driver;
 
 use \selective\ORM\Database;
 use \selective\ORM\Driver;
@@ -13,7 +13,7 @@ use \selective\ORM\Query;
  * @author Jonathan Amend <j.amend@gmail.com>
  * @copyright 2014, Jonathan Amend
  */
-class Sqlsrv extends Driver\PDO
+class Sqlsrv extends Driver
 {
     /**
      * @var string

@@ -112,15 +112,6 @@ class Database
     }
 
     /**
-     * Set the database table prefix
-     * @param $prefix string
-     */
-    public function setPrefix($prefix)
-    {
-        $this->prefix = $prefix;
-    }
-
-    /**
      * Checks if a table exists
      * @param string $tableName
      * @return bool
@@ -146,11 +137,11 @@ class Database
      */
     public function getTable($name)
     {
-        if (!isset($this->tables[$this->getName()][$name])) {
-            $this->tables[$this->getName()][$name] = $this->getDriver()->buildTable($this, $name);
+        if (!isset($this->tables[$name])) {
+            $this->tables[$name] = $this->getDriver()->buildTable($this, $name);
         }
 
-        return $this->tables[$this->getName()][$name];
+        return $this->tables[$name];
     }
 
     /**

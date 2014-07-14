@@ -51,36 +51,15 @@ abstract class DriverTest extends \PHPUnit_Framework_TestCase
 
         $constraints = $table->getConstraints();
         $this->assertCount(1, $constraints);
+
         $this->assertEquals(
-            array(
-                'localColumns' => array('idAuthor'),
+            [
+                'localColumns' => ['idAuthor'],
                 'relatedTable' => 'Authors',
-                'relatedColumns' => array('idAuthor')
-            ),
+                'relatedColumns' => ['idAuthor']
+            ],
             current($constraints)
         );
-    }
-
-    public function testTransactions()
-    {
-        $db = $this->getDb();
-        $recordSet = $db->{'Books'};
-
-        $oldCount = $recordSet->count();
-
-        $db->startTransaction();
-
-        $record = $recordSet->create();
-        $record->title = 'Test book';
-        $record->idAuthor = 1;
-        $record->isbn = '12345-6789';
-        $record->save();
-
-        $db->rollback();
-
-        $newCount = $recordSet->count();
-
-        $this->assertEquals($oldCount, $newCount);
     }
 
     public function testProfiling()

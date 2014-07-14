@@ -188,6 +188,20 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('selective\ORM\Record', $author);
         $this->assertEquals($author->getTable()->getName(), 'Authors');
         $this->assertEquals($author->getId(), $idAuthor);
+    }
 
+    public function testArrayWith()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Authors'}->with('Books');
+
+        $rows = $recordSet->toArray();
+        $this->assertInternalType('array', $rows);
+        $this->assertInternalType('array', $rows[1]);
+        $this->assertNotNull($rows[1]['name']);
+        $this->assertNotNull($rows[1]['Books']);
+        $this->assertInternalType('array', $rows[1]['Books']);
+        $this->assertNotNull($rows[1]['Books'][1]);
+        $this->assertNotNull($rows[1]['Books'][1]['title']);
     }
 }

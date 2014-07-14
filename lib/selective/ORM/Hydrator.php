@@ -160,7 +160,7 @@ class Hydrator
      * @param &array $oneToManyRecordSets
      * @param &array $relatedRecords
      */
-    private function loadRelatedRecords($record, &$oneToManyRecordSets, &$relatedRecords)
+    private function loadRelatedRecords(&$record, &$oneToManyRecordSets, &$relatedRecords)
     {
         foreach ($this->joinedTables as $joinedTableName => $joinedTable) {
             if (isset($this->currentRow[key($this->primaryKeyOrdinals[$joinedTableName])])) {

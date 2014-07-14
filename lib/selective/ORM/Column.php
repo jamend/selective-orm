@@ -13,9 +13,9 @@ class Column
     private $name;
     private $ordinal;
     private $default = null;
-    private $isPrimaryKey;
+    private $isPrimaryKey = false;
     private $isAutoIncrement = false;
-    private $allowNull;
+    private $allowNull = true;
     private $type;
     private $length;
     private $options = array();

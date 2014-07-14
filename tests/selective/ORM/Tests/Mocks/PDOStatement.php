@@ -19,6 +19,12 @@ class PDOStatement extends \PDOStatement
                     'Tables_in_sample' => 'Books',
                 ],
             ],
+            'testprefix_%' => [
+                0 =>
+                [
+                    'Tables_in_sample' => 'testprefix_Test',
+                ],
+            ]
         ],
         'SHOW CREATE TABLE `Books`' => [
             '' => [
@@ -48,6 +54,17 @@ class PDOStatement extends \PDOStatement
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8'
                 ],
             ],
+        ],
+        'SHOW CREATE TABLE `testprefix_Test`' => [
+            '' => [
+                0 => [
+                    'Table' => 'testprefix_Test',
+                    'Create Table' => 'CREATE TABLE `testprefix_Test` (
+  `test` int(11) DEFAULT NULL,
+  PRIMARY KEY (`test`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8'
+                ]
+            ]
         ],
         'SELECT
 	`test`.`Books`.`idBook`,

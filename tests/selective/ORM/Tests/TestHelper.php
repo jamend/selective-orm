@@ -15,6 +15,8 @@ trait TestHelper
 {
     protected function getDB()
     {
-        return new Database('test', '\selective\ORM\Tests\Mocks\Driver', array());
+        return new Database('test', '\selective\ORM\Tests\Mocks\Driver', [], [
+            'class' => 'BuiltIn'
+        ]);
     }
 }

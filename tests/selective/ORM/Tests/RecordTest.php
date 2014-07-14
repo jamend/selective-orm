@@ -41,6 +41,36 @@ class RecordTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($record->getId(), $id);
     }
 
+    public function testProperty()
+    {
+        $db = $this->getDB();
+        $table = $db->{'Books'};
+        $book = $table->{1};
+        $this->assertNotEmpty($book->title);
+    }
+
+    /**
+     * @expectedException \PHPUnit_Framework_Error
+     */
+    public function testUndefinedProperty()
+    {
+        $db = $this->getDB();
+        $table = $db->{'Books'};
+        $book = $table->{1};
+        $book->iDontExist;
+    }
+
+    /**
+     * @expectedException \PHPUnit_Framework_Error
+     */
+    public function testUndefinedRawProperty()
+    {
+        $db = $this->getDB();
+        $table = $db->{'Books'};
+        $book = $table->{1};
+        $book->getRawPropertyValue('iDontExist');
+    }
+
     public function testSave()
     {
         $db = $this->getDB();

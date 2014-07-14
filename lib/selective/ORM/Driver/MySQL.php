@@ -31,6 +31,10 @@ class MySQL extends Driver
      */
     private $password;
     /**
+     * @var int
+     */
+    private $port;
+    /**
      * @var string[]
      */
     private $tableNames;
@@ -44,6 +48,7 @@ class MySQL extends Driver
         $this->host = $parameters['host'];
         $this->username = $parameters['username'];
         $this->password = $parameters['password'];
+        $this->port = isset($parameters['port']) ? $parameters['port'] : 3306;
     }
 
     /**
@@ -52,7 +57,7 @@ class MySQL extends Driver
      */
     public function connect(Database $database)
     {
-        $this->pdo = new \PDO("mysql:host={$this->host};dbname={$database->getName()}", $this->username, $this->password);
+        $this->pdo = new \PDO("mysql:host={$this->host};dbname={$database->getName()};port={$this->port}", $this->username, $this->password);
     }
 
     /**
@@ -141,6 +146,9 @@ class MySQL extends Driver
     public function buildTable(Database $database, $name)
     {
         $createTableInfo = $this->fetchAll("SHOW CREATE TABLE `{$database->getPrefix()}{$name}`");
+        if (!isset($createTableInfo[0]['Create Table'])) {
+            throw new \Exception('Could not find table ' . $name);
+        }
         $createTableSql = $createTableInfo[0]['Create Table'];
         $columns = array();
         $primaryKeys = array();

@@ -104,6 +104,41 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('selective\ORM\Record', $table[3]);
     }
 
+    public function testArrayOffsetUnset()
+    {
+        $db = $this->getDB();
+        $table = $db->{'Books'};
+        $oldCount = $table->count(); // force load
+        unset($table[1]);
+        $newCount = $table->count();
+        $this->assertNotEquals($oldCount, $newCount);
+    }
+
+    public function testMagicGet()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'}->openRecordSet();
+        $this->assertInstanceOf('selective\ORM\Record', $recordSet->{1});
+    }
+
+    /**
+     * @expectedException \PHPUnit_Framework_Error
+     */
+    public function testMagicGetUndefined()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'}->openRecordSet();
+        $recordSet->{0};
+    }
+
+    public function testMagicIsset()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'}->openRecordSet();
+        $this->assertTrue(isset($recordSet->{1}));
+        $this->assertFalse(isset($recordSet->{0}));
+    }
+
     public function testToArray()
     {
         $db = $this->getDB();

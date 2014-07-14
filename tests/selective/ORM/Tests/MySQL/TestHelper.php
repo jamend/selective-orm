@@ -1,5 +1,5 @@
 <?php
-namespace selective\ORM\Tests\SQLite;
+namespace selective\ORM\Tests\MySQL;
 
 use selective\ORM\Database;
 
@@ -18,7 +18,7 @@ trait TestHelper
 
         $db->getDriver()->executeUpdate(<<<SQL
 CREATE TABLE IF NOT EXISTS Authors (
-  idAuthor INTEGER PRIMARY KEY NOT NULL,
+  idAuthor INTEGER PRIMARY KEY NOT NULL AUTO_INCREMENT,
   name TEXT
 )
 SQL
@@ -26,7 +26,7 @@ SQL
 
         $db->getDriver()->executeUpdate(<<<SQL
 CREATE TABLE IF NOT EXISTS Books (
-    idBook INTEGER PRIMARY KEY NOT NULL,
+    idBook INTEGER PRIMARY KEY NOT NULL AUTO_INCREMENT,
     title TEXT NOT NULL,
     idAuthor INTEGER NOT NULL,
     isbn TEXT NOT NULL,
@@ -38,10 +38,13 @@ SQL
 
         $db->getDriver()->executeUpdate(<<<SQL
 CREATE TABLE IF NOT EXISTS testprefix_Test (
-    test INTEGER PRIMARY KEY DEFAULT NULL
-)
+    test int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
 SQL
         );
+
+        $db->getDriver()->executeUpdate("DELETE FROM Books");
+        $db->getDriver()->executeUpdate("DELETE FROM Authors");
 
         $db->getDriver()->executeUpdate("INSERT INTO Authors (idAuthor, name) VALUES (1, 'Author 1')");
         $db->getDriver()->executeUpdate("INSERT INTO Authors (idAuthor, name) VALUES (2, 'Author 2')");
@@ -54,20 +57,23 @@ SQL
 
     protected function setUp()
     {
-        if (empty($GLOBALS['sqlite_enabled'])) {
-            $this->markTestSkipped('sqlite_* is not configured in phpunit.xml');
+        if (empty($GLOBALS['mysql_enabled'])) {
+            $this->markTestSkipped('mysql_* is not configured in phpunit.xml');
         }
     }
 
     protected function getDriverClassName()
     {
-        return 'SQLite';
+        return 'MySQL';
     }
 
     protected function getDriverParameters()
     {
         return array(
-            'file' => $GLOBALS['sqlite_file']
+            'host' => $GLOBALS['mysql_hostname'],
+            'port' => $GLOBALS['mysql_port'],
+            'username' => $GLOBALS['mysql_username'],
+            'password' => $GLOBALS['mysql_password']
         );
     }
 }

@@ -122,6 +122,21 @@ class RecordTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($record->existed());
     }
 
+    public function testDatetime()
+    {
+        $db = $this->getDB();
+
+        $record = $db->Books->create();
+        $record->title = 'A New Book';
+        $record->idAuthor = 1;
+        $record->isbn = '12345-6789';
+        $record->save();
+
+        $record = $db->Books->{1};
+        // dateCreated is a timestamp column, so it should be set to the current time in UTC
+        $this->assertTrue(abs(time() - $record->dateCreated) < 5);
+    }
+
     public function testOneToMany()
     {
         $db = $this->getDB();

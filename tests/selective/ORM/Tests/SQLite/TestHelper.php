@@ -16,8 +16,11 @@ trait TestHelper
             $this->getDriverParameters()
         );
 
+        $db->getDriver()->executeUpdate('DROP TABLE IF EXISTS Books');
+        $db->getDriver()->executeUpdate('DROP TABLE IF EXISTS Authors');
+
         $db->getDriver()->executeUpdate(<<<SQL
-CREATE TABLE IF NOT EXISTS Authors (
+CREATE TABLE Authors (
   idAuthor INTEGER PRIMARY KEY NOT NULL,
   name TEXT
 )
@@ -25,12 +28,13 @@ SQL
         );
 
         $db->getDriver()->executeUpdate(<<<SQL
-CREATE TABLE IF NOT EXISTS Books (
+CREATE TABLE Books (
     idBook INTEGER PRIMARY KEY NOT NULL,
     title TEXT NOT NULL,
     idAuthor INTEGER NOT NULL,
     isbn TEXT NOT NULL,
     description TEXT,
+    dateCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(idAuthor) REFERENCES Authors(idAuthor)
 )
 SQL

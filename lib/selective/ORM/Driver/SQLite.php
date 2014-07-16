@@ -60,18 +60,19 @@ class SQLite extends Driver
     }
 
     /**
-     * Get the MySQL-specific representation of a value for a column
+     * Get the SQL expression representing a value for a column
      * @param Column $column
      * @return string
      */
     public function getColumnSQLExpression(Column $column)
     {
         switch ($column->getType()) {
-            case 'date':
-            case 'datetime':
-                return "TIME_TO_SEC(TIMEDIFF({$column->getFullIdentifier()}, '1970-01-01 00:00:00')) AS {$column->getName()}";
+            case 'DATE':
+            case 'DATETIME':
+            case 'TIMESTAMP':
+                return "strftime('%s', {$column->getFullIdentifier()}) AS {$column->getName()}";
                 break;
-            case 'set':
+            case 'SET':
                 return "{$column->getFullIdentifier()} + 0 AS {$column->getName()}";
                 break;
             default:
@@ -81,7 +82,7 @@ class SQLite extends Driver
     }
 
     /**
-     * Get the SQL expression representing a value for a column
+     * Get the MySQL-specific representation of a value for a column
      * @param Column $column
      * @param mixed $value
      * @return mixed

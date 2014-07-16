@@ -4,9 +4,6 @@ php:
   - 5.4
   - 5.5
 
-env:
-  - DB=sqlite
-
 before_script:
   - composer update
   - mysql -e 'create database selective_test;'

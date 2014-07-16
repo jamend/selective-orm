@@ -71,7 +71,7 @@ class MySQL extends Driver
     }
 
     /**
-     * Get the MySQL-specific representation of a value for a column
+     * Get the SQL expression representing a value for a column
      * @param Column $column
      * @return string
      */
@@ -80,6 +80,7 @@ class MySQL extends Driver
         switch ($column->getType()) {
             case 'date':
             case 'datetime':
+            case 'timestamp':
                 return "UNIX_TIMESTAMP({$column->getFullIdentifier()}) AS {$column->getName()}";
                 break;
             case 'set':
@@ -92,7 +93,7 @@ class MySQL extends Driver
     }
 
     /**
-     * Get the SQL expression representing a value for a column
+     * Get the MySQL-specific representation of a value for a column
      * @param Column $column
      * @param mixed $value
      * @return mixed
@@ -107,6 +108,7 @@ class MySQL extends Driver
                     return date('Y-m-d', $value);
                     break;
                 case 'datetime':
+                case 'timestamp':
                     return date('Y-m-d H:i:s', $value);
                     break;
                 default:
@@ -174,7 +176,7 @@ class MySQL extends Driver
                 if (isset($columnInfo['default']) && $columnInfo['default'] !== 'NULL') {
                     if ($columnInfo['default'] === '') {
                         $default = '';
-                    } else if ($columnInfo['default'] !== 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP') {
+                    } else if ($columnInfo['default'] !== 'CURRENT_TIMESTAMP' && $columnInfo['default'] !== 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP') {
                         // we need to parse the SQL default value
                         $defaultResult = $this->fetchAll('SELECT ' . $columnInfo['default']);
                         $default = current(current($defaultResult));

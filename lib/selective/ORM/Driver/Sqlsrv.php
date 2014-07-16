@@ -77,7 +77,7 @@ class Sqlsrv extends Driver
     }
 
     /**
-     * Get the MySQL-specific representation of a value for a column
+     * Get the SQL expression representing a value for a column
      * @param Column $column
      * @return string
      */
@@ -86,7 +86,12 @@ class Sqlsrv extends Driver
         switch ($column->getType()) {
             case 'date':
             case 'datetime':
-                return "DATEDIFF(SECOND,{d '1970-01-01'}, {$column->getFullIdentifier()}) AS {$column->getName()}";
+            case 'datetime2':
+            case 'smalldatetime':
+                return "DATEDIFF(SECOND,{d '1970-01-01'}, {$column->getFullIdentifier()}) + DATEDIFF(SECOND, SYSDATETIME(), SYSDATETIMEOFFSET()) AS {$column->getName()}";
+                break;
+            case 'datetimeoffset':
+                return "DATEDIFF(SECOND,{d '1970-01-01 00:00:00 +0:00'}, {$column->getFullIdentifier()})) AS {$column->getName()}";
                 break;
             case 'set':
                 return "{$column->getFullIdentifier()} + 0 AS {$column->getName()}";
@@ -98,7 +103,7 @@ class Sqlsrv extends Driver
     }
 
     /**
-     * Get the SQL expression representing a value for a column
+     * Get the MySQL-specific representation of a value for a column
      * @param Column $column
      * @param mixed $value
      * @return mixed

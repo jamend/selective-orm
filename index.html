@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Selective ORM by jamend</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Selective ORM</h1>
+        <p>Selective Object-Relational Mapper</p>
+
+        <p class="view"><a href="https://github.com/jamend/selective-orm">View the Project on GitHub <small>jamend/selective-orm</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/jamend/selective-orm/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/jamend/selective-orm/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/jamend/selective-orm">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="selective-object-relational-mapper" class="anchor" href="#selective-object-relational-mapper"><span class="octicon octicon-link"></span></a>Selective Object-Relational Mapper</h1>
+
+<p>Selective ORM is a database abstraction layer that simplifies working with databases. It is fully object-oriented, and infers the database schema (tables/columns/relationships) automatically, so you don't have to repeat it in your code.</p>
+
+<ul>
+<li>Build Status: <a href="https://travis-ci.org/jamend/selective-orm"><img src="https://travis-ci.org/jamend/selective-orm.svg?branch=master" alt="Build Status"></a>
+</li>
+<li>Coverage Status: <a href="https://coveralls.io/r/jamend/selective-orm"><img src="https://coveralls.io/repos/jamend/selective-orm/badge.png?1" alt="Coverage Status"></a>
+</li>
+</ul><h1>
+<a name="installing" class="anchor" href="#installing"><span class="octicon octicon-link"></span></a>Installing</h1>
+
+<p>If you'd like to try Selective pending a stable release, you can add this to your composer.json:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="p">{</span>
+    <span class="s2">"require"</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">"jamend/selective-orm"</span><span class="o">:</span> <span class="s2">"dev-master"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<h1>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h1>
+
+<p>Connecting to a database</p>
+
+<div class="highlight highlight-php"><pre><span class="c1">// first argument is the database name</span>
+<span class="c1">// second argument is the driver implementation class name</span>
+<span class="c1">// third argument is the parameter array for the driver</span>
+<span class="nv">$db</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\selective\ORM\Database</span><span class="p">(</span>
+    <span class="s1">'sample'</span><span class="p">,</span>
+    <span class="s1">'MySQL'</span><span class="p">,</span> <span class="c1">// driver class</span>
+    <span class="p">[</span><span class="s1">'host'</span> <span class="o">=&gt;</span> <span class="s1">'localhost'</span><span class="p">,</span> <span class="s1">'username'</span> <span class="o">=&gt;</span> <span class="s1">'...'</span><span class="p">,</span> <span class="s1">'password'</span> <span class="o">=&gt;</span> <span class="s1">'...'</span><span class="p">]</span> <span class="c1">// MySQL driver parameters</span>
+<span class="p">);</span>
+</pre></div>
+
+<p>Getting a record from the database</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$books</span> <span class="o">=</span> <span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Books</span><span class="p">;</span> <span class="c1">// get a Table instance for the Books table in the database</span>
+
+<span class="nv">$book</span> <span class="o">=</span> <span class="nv">$books</span><span class="o">-&gt;</span><span class="p">{</span><span class="mi">12</span><span class="p">};</span> <span class="c1">// get a Record instance for the book with ID 12</span>
+
+<span class="k">echo</span> <span class="nv">$book</span><span class="o">-&gt;</span><span class="na">title</span><span class="p">;</span> <span class="c1">// columns map directly to properties of the record</span>
+</pre></div>
+
+<p>Looping through records with a where and order by clause</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$someBooks</span> <span class="o">=</span> <span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Books</span>
+    <span class="o">-&gt;</span><span class="na">where</span><span class="p">(</span><span class="s1">'tite LIKE ?'</span><span class="p">,</span> <span class="s1">'The%'</span><span class="p">)</span>
+    <span class="o">-&gt;</span><span class="na">orderBy</span><span class="p">(</span><span class="s1">'datePublished'</span><span class="p">,</span> <span class="s1">'DESC'</span><span class="p">)</span>
+<span class="p">;</span> <span class="c1">// fluent interface</span>
+
+<span class="c1">// $books will lazy-load the records once you start iterating through them</span>
+<span class="k">foreach</span> <span class="p">(</span><span class="nv">$someBooks</span> <span class="k">as</span> <span class="nv">$id</span> <span class="o">=&gt;</span> <span class="nv">$book</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="s2">"#</span><span class="si">{</span><span class="nv">$id</span><span class="si">}</span><span class="s2"> =&gt; </span><span class="si">{</span><span class="nv">$book</span><span class="o">-&gt;</span><span class="na">title</span><span class="si">}</span><span class="s2"> &lt;br /&gt;"</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Create book</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$newBook</span> <span class="o">=</span> <span class="nv">$books</span><span class="o">-&gt;</span><span class="na">create</span><span class="p">();</span>
+<span class="nv">$newBook</span><span class="o">-&gt;</span><span class="na">title</span> <span class="o">=</span> <span class="s1">'A New Book'</span><span class="p">;</span>
+<span class="nv">$newBook</span><span class="o">-&gt;</span><span class="na">datePublished</span> <span class="o">=</span> <span class="nb">time</span><span class="p">();</span>
+<span class="nv">$newBook</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
+
+<span class="c1">// $newBook's id is automatically set to the auto-increment ID</span>
+<span class="k">echo</span> <span class="s2">"New book created with ID </span><span class="si">{</span><span class="nv">$newBook</span><span class="o">-&gt;</span><span class="na">getID</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">;</span>
+</pre></div>
+
+<p>Update book</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$book</span> <span class="o">=</span> <span class="nv">$books</span><span class="o">-&gt;</span><span class="p">{</span><span class="mi">13</span><span class="p">};</span>
+<span class="nv">$book</span><span class="o">-&gt;</span><span class="na">title</span> <span class="o">=</span> <span class="s1">'A Better Title'</span><span class="p">;</span>
+<span class="nv">$book</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
+</pre></div>
+
+<p>Delete book</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$books</span><span class="o">-&gt;</span><span class="p">{</span><span class="mi">14</span><span class="p">}</span><span class="o">-&gt;</span><span class="na">delete</span><span class="p">();</span>
+</pre></div>
+
+<h1>
+<a name="relationships" class="anchor" href="#relationships"><span class="octicon octicon-link"></span></a>Relationships</h1>
+
+<p>Selective can also simplify the use of foreign key constraints that are defined in the schema. Here are some examples:</p>
+
+<p>Get all books by an author</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$authors</span> <span class="o">=</span> <span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Authors</span><span class="p">;</span>
+
+<span class="nv">$author</span> <span class="o">=</span> <span class="nv">$authors</span><span class="o">-&gt;</span><span class="p">{</span><span class="mi">1</span><span class="p">};</span>
+<span class="nv">$books</span> <span class="o">=</span> <span class="nv">$author</span><span class="o">-&gt;</span><span class="na">Books</span><span class="p">;</span> <span class="c1">// $books will be the Books table filtered by the author</span>
+</pre></div>
+
+<p>Get the author of a book</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$book</span> <span class="o">=</span> <span class="nv">$books</span><span class="o">-&gt;</span><span class="p">{</span><span class="mi">15</span><span class="p">};</span>
+<span class="nv">$author</span> <span class="o">=</span> <span class="nv">$book</span><span class="o">-&gt;</span><span class="na">idAuthor</span><span class="p">;</span> <span class="c1">// $author will be a Record for the author matching the book's idAuthor</span>
+<span class="k">echo</span> <span class="nv">$author</span><span class="o">-&gt;</span><span class="na">name</span><span class="p">;</span>
+</pre></div>
+
+<p>Set the author of a book</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$author</span> <span class="o">=</span> <span class="nv">$authors</span><span class="o">-&gt;</span><span class="p">{</span><span class="mi">2</span><span class="p">}</span>
+<span class="nv">$book</span> <span class="o">=</span> <span class="nv">$books</span><span class="o">-&gt;</span><span class="p">{</span><span class="mi">16</span><span class="p">};</span>
+
+<span class="nv">$book</span><span class="o">-&gt;</span><span class="na">idAuthor</span> <span class="o">=</span> <span class="nv">$author</span><span class="p">;</span> <span class="c1">// '2' would also work</span>
+<span class="nv">$book</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
+</pre></div>
+
+<p><strong>Relationship optimization</strong></p>
+
+<p>Related records are by default lazy loaded, meaning that the author for $book-&gt;idAuthor or the book record set for $author-&gt;Books will not be loaded until you request them. This is undesirable when working with a record set and its related records in batches, as it will result in many queries to the database being called in a loop. To demonstrate:</p>
+
+<div class="highlight highlight-php"><pre><span class="k">foreach</span> <span class="p">(</span><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Books</span> <span class="k">as</span> <span class="nv">$book</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// to get every book's author's name, a query must be sent to the database to fetch the book's author</span>
+    <span class="k">echo</span> <span class="nv">$book</span><span class="o">-&gt;</span><span class="na">idAuthor</span><span class="o">-&gt;</span><span class="na">name</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>To avoid this, the RecordSet::with($tableName) method can be used to tell Selective to pre-load the related records for a RecordSet:</p>
+
+<div class="highlight highlight-php"><pre><span class="k">foreach</span> <span class="p">(</span><span class="nv">$db</span><span class="o">-&gt;</span><span class="na">Books</span><span class="o">-&gt;</span><span class="na">with</span><span class="p">(</span><span class="s1">'Authors'</span><span class="p">)</span> <span class="k">as</span> <span class="nv">$book</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// the author for each book will already be pre-loaded using the same query that fetched the books</span>
+    <span class="k">echo</span> <span class="nv">$book</span><span class="o">-&gt;</span><span class="na">idAuthor</span><span class="o">-&gt;</span><span class="na">name</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/jamend">jamend</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>

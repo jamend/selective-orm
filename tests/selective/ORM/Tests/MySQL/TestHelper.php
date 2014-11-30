@@ -54,7 +54,8 @@ SQL
         $db->getDriver()->executeUpdate("INSERT INTO Authors (idAuthor, name) VALUES (2, 'Author 2')");
 
         $db->getDriver()->executeUpdate("INSERT INTO Books (idBook, title, idAuthor, isbn, description) VALUES (1, 'My First Book', 1, '12345-6789', 'It wasn''t very good')");
-        $db->getDriver()->executeUpdate("INSERT INTO Books (idBook, title, idAuthor, isbn, description) VALUES (2, 'My Second Book', 2, '12345-6790', 'It wasn''t very good either')");
+        $db->getDriver()->executeUpdate("INSERT INTO Books (idBook, title, idAuthor, isbn, description) VALUES (2, 'My Second Book', 1, '12345-6790', 'It wasn''t very good either')");
+        $db->getDriver()->executeUpdate("INSERT INTO Books (idBook, title, idAuthor, isbn, description) VALUES (3, 'My First Book', 2, '12345-6790', 'It was OK')");
 
         return $db;
     }

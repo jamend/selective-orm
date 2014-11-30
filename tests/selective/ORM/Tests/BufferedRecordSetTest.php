@@ -18,7 +18,7 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
         }
 
         $this->assertEquals($count, $reportedCount);
-        $this->assertEquals($count, 2);
+        $this->assertEquals($count, 3);
     }
 
     public function testIterate()
@@ -36,11 +36,14 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
                 case 1:
                     $this->assertEquals($id, 2);
                     break;
+                case 2:
+                    $this->assertEquals($id, 3);
+                    break;
             }
             $i++;
         }
 
-        $this->assertEquals($i, 2);
+        $this->assertEquals($i, 3);
     }
 
     public function testRewind()
@@ -82,7 +85,7 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
         $last = $recordSet->last();
 
         $this->assertTrue($last !== false);
-        $this->assertEquals($last->getId(), 2);
+        $this->assertEquals($last->getId(), 3);
     }
 
     public function testArrayOffsetGet()
@@ -91,7 +94,7 @@ class BufferedRecordSetTest extends \PHPUnit_Framework_TestCase
         $table = $db->{'Books'};
         $this->assertTrue(isset($table[1]));
         $this->assertInstanceOf('selective\ORM\Record', $table[1]);
-        $this->assertFalse(isset($table[3]));
+        $this->assertFalse(isset($table[4]));
     }
 
     public function testArrayOffsetSet()

@@ -20,5 +20,6 @@
         <var name="sqlsrv_host" value="localhost\SQLEXPRESS" />
         <var name="sqlsrv_username" value="" />
         <var name="sqlsrv_password" value="" />
+        <var name="sqlsrv_schema" value="dbo" />
     </php>
 </phpunit>

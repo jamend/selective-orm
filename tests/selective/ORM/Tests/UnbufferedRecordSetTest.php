@@ -16,7 +16,7 @@ class UnbufferedRecordSetTest extends \PHPUnit_Framework_TestCase
             $count++;
         }
 
-        $this->assertEquals($count, 2);
+        $this->assertEquals($count, 3);
     }
 
     public function testRewind()

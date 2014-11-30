@@ -42,7 +42,7 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
     {
         $db = $this->getDB();
         $recordSet = $db->{'Books'}->where("title LIKE ?", '%First%');
-        $this->assertCount(1, $recordSet);
+        $this->assertCount(2, $recordSet);
         foreach ($recordSet as $record) {
             $this->assertContains('First', $record->title);
         }
@@ -53,7 +53,7 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
         $db = $this->getDB();
 
         $recordSet = $db->{'Books'}->orderBy('idBook', 'ASC');
-        $this->assertCount(2, $recordSet);
+        $this->assertCount(3, $recordSet);
         $i = 0;
         foreach ($recordSet as $record) {
             switch ($i) {
@@ -63,19 +63,25 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
                 case 1:
                     $this->assertEquals($record->getId(), 2);
                     break;
+                case 2:
+                    $this->assertEquals($record->getId(), 3);
+                    break;
             }
             $i++;
         }
 
         $recordSet = $db->{'Books'}->orderBy('idBook', 'DESC');
-        $this->assertCount(2, $recordSet);
+        $this->assertCount(3, $recordSet);
         $i = 0;
         foreach ($recordSet as $record) {
             switch ($i) {
                 case 0:
-                    $this->assertEquals($record->getId(), 2);
+                    $this->assertEquals($record->getId(), 3);
                     break;
                 case 1:
+                    $this->assertEquals($record->getId(), 2);
+                    break;
+                case 2:
                     $this->assertEquals($record->getId(), 1);
                     break;
             }
@@ -117,7 +123,7 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
         $db = $this->getDB();
         $recordSet = $db->{'Books'}->sql('SELECT title FROM Books');
 
-        $record = $recordSet->first(1);
+        $record = $recordSet->first();
         $this->assertNotNull($record);
         $this->assertInstanceOf('selective\ORM\Record', $record);
         $this->assertEquals($record->title, 'My First Book');
@@ -126,11 +132,12 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
         $recordSet = $db->{'Books'};
         $recordSet = $recordSet->sql('SELECT title FROM Books');
         $rows = $recordSet->toArray();
-        $this->assertCount(2, $rows);
+        $this->assertCount(3, $rows);
         $this->assertCount(1, $rows[0]);
         $this->assertNotNull($rows[0]['title']);
         $this->assertEquals($rows[0]['title'], 'My First Book');
         $this->assertEquals($rows[1]['title'], 'My Second Book');
+        $this->assertEquals($rows[2]['title'], 'My First Book');
     }
 
     public function testWithOneToMany()

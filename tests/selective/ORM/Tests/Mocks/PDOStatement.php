@@ -85,7 +85,7 @@ WHERE
                     4 => 'It wasn\'t very good',
                 ],
             ],
-            '3' => [
+            '4' => [
                 0 => null
             ]
         ],
@@ -108,9 +108,16 @@ FROM
                 1 => [
                     0 => '2',
                     1 => 'My Second Book',
-                    2 => '2',
+                    2 => '1',
                     3 => '12345-6790',
                     4 => 'It wasn\'t very good either',
+                ],
+                2 => [
+                    0 => '3',
+                    1 => 'My First Book',
+                    2 => '2',
+                    3 => '12345-6790',
+                    4 => 'It was OK',
                 ],
             ],
         ],
@@ -204,6 +211,9 @@ FROM
                 1 => [
                     'title' => 'My Second Book',
                 ],
+                2 => [
+                    'title' => 'My First Book',
+                ],
             ],
         ],
         'SELECT
@@ -223,6 +233,13 @@ WHERE
                     2 => '1',
                     3 => '12345-6789',
                     4 => 'It wasn\'t very good',
+                ],
+                1 => [
+                    0 => '3',
+                    1 => 'My First Book',
+                    2 => '2',
+                    3 => '12345-6789',
+                    4 => 'It was OK',
                 ],
             ],
         ],
@@ -247,9 +264,16 @@ ORDER BY
                 1 => [
                     0 => '2',
                     1 => 'My Second Book',
-                    2 => '2',
+                    2 => '1',
                     3 => '12345-6790',
                     4 => 'It wasn\'t very good either',
+                ],
+                2 => [
+                    0 => '3',
+                    1 => 'My First Book',
+                    2 => '2',
+                    3 => '12345-6790',
+                    4 => 'It was OK',
                 ],
             ],
         ],
@@ -265,13 +289,20 @@ ORDER BY
 	idBook DESC' => [
             '' => [
                 0 => [
+                    0 => '3',
+                    1 => 'My First Book',
+                    2 => '2',
+                    3 => '12345-6790',
+                    4 => 'It was OK',
+                ],
+                1 => [
                     0 => '2',
                     1 => 'My Second Book',
-                    2 => '2',
+                    2 => '1',
                     3 => '12345-6790',
                     4 => 'It wasn\'t very good either',
                 ],
-                1 => [
+                2 => [
                     0 => '1',
                     1 => 'My First Book',
                     2 => '1',

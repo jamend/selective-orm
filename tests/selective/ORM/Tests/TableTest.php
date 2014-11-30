@@ -66,7 +66,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
         $id = 1;
         $this->assertTrue(isset($table->{$id}));
 
-        $id = 3;
+        $id = 4;
         $this->assertFalse(isset($table->{$id}));
     }
 
@@ -85,7 +85,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
     {
         $db = $this->getDB();
         $table = $db->{'Books'};
-        $id = 3;
+        $id = 4;
         $record = $table->getRecordByID($id);
         $this->assertEquals(null, $record);
     }
@@ -97,7 +97,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
     {
         $db = $this->getDB();
         $table = $db->{'Books'};
-        $id = 3;
+        $id = 4;
         $record = $table->{$id};
         $this->assertEquals(null, $record);
     }

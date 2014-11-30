@@ -163,7 +163,7 @@ class RecordTest extends \PHPUnit_Framework_TestCase
             $this->assertInstanceOf('selective\ORM\Record', $book);
             $this->assertEquals($book->getRawPropertyValue('idAuthor'), $author->getId());
         }
-        $this->assertEquals($count, 1);
+        $this->assertEquals($count, 2);
     }
 
     public function testManyToOne()

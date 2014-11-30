@@ -158,14 +158,15 @@ class Sqlsrv extends Driver
                 $outerColumns = substr($outerColumns, 2); // remove first ', '
                 $data = "SELECT {$columns}, ROW_NUMBER() OVER (ORDER BY {$primaryKeys}) AS [_rowCount] FROM {$from}{$where}{$orderBy}";
 
-                $to = $limitClause[0] + $limitClause[1];
+                $rowCountFrom = $limitClause[0] + 1;
+                $rowCountTo = $limitClause[0] + $limitClause[1];
                 $sql = <<<SQL
 ;WITH DATA AS (
 	{$data}
 )
 SELECT {$outerColumns}
 FROM DATA
-WHERE [_rowCount] BETWEEN {$limitClause[1]} AND {$to}
+WHERE [_rowCount] BETWEEN {$rowCountFrom} AND {$rowCountTo}
 {$orderBy}
 SQL;
             }
@@ -297,18 +298,18 @@ SQL
                 $length = null;
 
                 switch ($columnInfo['type']) {
-                	case 'text':
-                	    $length = 2147483647;
-                	    break;
-                	case 'ntext':
-                	    $length = 1073741823;
-                	    break;
-                	case 'varchar':
-            	    case 'nvarchar':
-                	case 'char':
-            	    case 'nchar':
-            	        $length = $columnInfo['length'];
-                	    break;
+                    case 'text':
+                        $length = 2147483647;
+                        break;
+                    case 'ntext':
+                        $length = 1073741823;
+                        break;
+                    case 'varchar':
+                    case 'nvarchar':
+                    case 'char':
+                    case 'nchar':
+                        $length = $columnInfo['length'];
+                        break;
                 }
                 $column->setLength($length);
 

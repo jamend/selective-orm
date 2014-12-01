@@ -56,6 +56,23 @@ foreach ($someBooks as $id => $book) {
 }
 ```
 
+**Unbuffered record set**
+
+By default, all rows matching the query are fetched when starting to iterate through them. This can be a performance problem when dealing with a very large number of records, since they are all kept in memory and PHP cannot garbage-collect them. As an alternative, an Unbuffered record set can be used, which allows you to iterate through the results like a stream of records:
+
+```php
+$bookStream = $books->
+    ->orderBy('datePublished', 'DESC')
+    ->unbuffered() // switch to unbuffered
+;
+
+foreach ($bookStream as $book) {
+    // ...
+}
+```
+
+**Persisting changes**
+
 Create book
 ```php
 $newBook = $books->create();
@@ -82,7 +99,18 @@ $books->{14}->delete();
 Relationships
 =============
 
-Selective can also simplify the use of foreign key constraints that are defined in the schema. Here are some examples:
+Selective can also simplify the use of relationships (foreign key constraint) that are defined in the schema.
+
+Each relationship will be mapped to the table's columns by the column name. If a column has a relationship, the resulting record properties will represent the record at the other end of the relationship.
+
+Here are some examples:
+
+Get the author of a book
+```php
+$book = $books->{15};
+$author = $book->idAuthor; // $author will be a Record for the author matching the book's idAuthor
+echo $author->name;
+```
 
 Get all books by an author
 ```php
@@ -90,13 +118,6 @@ $authors = $db->Authors;
 
 $author = $authors->{1};
 $books = $author->Books; // $books will be the Books table filtered by the author
-```
-
-Get the author of a book
-```php
-$book = $books->{15};
-$author = $book->idAuthor; // $author will be a Record for the author matching the book's idAuthor
-echo $author->name;
 ```
 
 Set the author of a book

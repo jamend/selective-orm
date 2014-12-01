@@ -81,7 +81,7 @@ class PDOStatement extends \PDOStatement
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	`test`.`Books`.`dateCreated`
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
 FROM
 	`test`.`Books`
 WHERE
@@ -106,7 +106,7 @@ WHERE
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	`test`.`Books`.`dateCreated`
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
 FROM
 	`test`.`Books`' => [
                 '' => [
@@ -142,7 +142,7 @@ FROM
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	`test`.`Books`.`dateCreated`
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
 FROM
 	`test`.`Books`
 WHERE
@@ -186,7 +186,7 @@ WHERE
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	`test`.`Books`.`dateCreated`,
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated,
 	`test`.`Authors`.`idAuthor`,
 	`test`.`Authors`.`name`
 FROM
@@ -224,7 +224,7 @@ FROM
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	`test`.`Books`.`dateCreated`
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
 FROM
 	`test`.`Authors`
 	LEFT JOIN `test`.`Books`
@@ -271,7 +271,7 @@ FROM
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	`test`.`Books`.`dateCreated`
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
 FROM
 	`test`.`Books`
 WHERE
@@ -301,7 +301,7 @@ WHERE
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	`test`.`Books`.`dateCreated`
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
 FROM
 	`test`.`Books`
 ORDER BY
@@ -339,7 +339,7 @@ ORDER BY
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	`test`.`Books`.`dateCreated`
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
 FROM
 	`test`.`Books`
 ORDER BY
@@ -377,7 +377,7 @@ ORDER BY
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	`test`.`Books`.`dateCreated`
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
 FROM
 	`test`.`Books`
 LIMIT 0, 1' => [
@@ -398,7 +398,7 @@ LIMIT 0, 1' => [
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	`test`.`Books`.`dateCreated`
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated AS dateCreated
 FROM
 	`test`.`Books`
 LIMIT 1, 1' => [

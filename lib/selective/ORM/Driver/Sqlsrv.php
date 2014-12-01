@@ -83,21 +83,33 @@ class Sqlsrv extends Driver
      */
     public function getColumnSQLExpression(Column $column)
     {
-        switch ($column->getType()) {
+        return $this->getSQLExpressionForType($column->getFullIdentifier(), $column->getType(), $column->getName());
+    }
+
+    /**
+     * Get the SQL expression to wrap a given expression based on a data type
+     * @param string $field
+     * @param string $type
+     * @param string $alias
+     * @return string
+     */
+    private function getSQLExpressionForType($field, $type, $alias)
+    {
+        switch ($type) {
             case 'date':
             case 'datetime':
             case 'datetime2':
             case 'smalldatetime':
-                return "DATEDIFF(SECOND,{d '1970-01-01'}, {$column->getFullIdentifier()}) + DATEDIFF(SECOND, SYSDATETIME(), SYSDATETIMEOFFSET()) AS {$column->getName()}";
+                return "DATEDIFF(SECOND,{d '1970-01-01'}, {$field}) + DATEDIFF(SECOND, SYSDATETIME(), SYSDATETIMEOFFSET()) AS {$alias}";
                 break;
             case 'datetimeoffset':
-                return "DATEDIFF(SECOND,{d '1970-01-01 00:00:00 +0:00'}, {$column->getFullIdentifier()})) AS {$column->getName()}";
+                return "DATEDIFF(SECOND,{d '1970-01-01 00:00:00 +0:00'}, {$field})) AS {$alias}";
                 break;
             case 'set':
-                return "{$column->getFullIdentifier()} + 0 AS {$column->getName()}";
+                return "{$field} + 0 AS {$alias}";
                 break;
             default:
-                return $column->getFullIdentifier();
+                return $field;
                 break;
         }
     }
@@ -277,7 +289,8 @@ SQL
                 $default = null;
                 if ($columnInfo['default'] !== null) {
                     // we need to parse the SQL default value
-                    $defaultResult = $this->fetchAll('SELECT ' . $columnInfo['default']);
+                    $defaultExpression = $this->getSQLExpressionForType($columnInfo['default'], $columnInfo['type'], '[default]');
+                    $defaultResult = $this->fetchAll('SELECT ' . $defaultExpression);
                     $default = current(current($defaultResult));
                 }
 

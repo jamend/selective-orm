@@ -186,7 +186,7 @@ class MySQL extends Driver
                 $column
                     ->setName($columnInfo['name'])
                     ->setOrdinal($ordinal)
-                    ->setType($columnInfo['type'])
+                    ->setType(strtolower($columnInfo['type']))
                     ->setDefault($default)
                     ->setAllowNull(!isset($columnInfo['allowNull']) || $columnInfo['allowNull'] === 'NULL')
                     ->setAutoIncrement(!empty($columnInfo['autoIncrement']))

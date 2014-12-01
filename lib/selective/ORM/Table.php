@@ -187,7 +187,7 @@ class Table extends RecordSet\Buffered
             // build a where clause to find a record by its ID
             $idParts = explode(',', $id);
             $where = [];
-            for ($i  = 0; $i < count($idParts); $i++) {
+            for ($i = 0; $i < count($idParts); $i++) {
                 $columnName = $this->getTable()->getPrimaryKeys()[$i];
                 $column = $this->getTable()->getColumn($columnName);
                 $where[] = ["{$column->getFullIdentifier()} = ?", [$idParts[$i]]];

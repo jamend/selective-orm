@@ -67,12 +67,12 @@ class SQLite extends Driver
     public function getColumnSQLExpression(Column $column)
     {
         switch ($column->getType()) {
-            case 'DATE':
-            case 'DATETIME':
-            case 'TIMESTAMP':
+            case 'date':
+            case 'datetime':
+            case 'timestamp':
                 return "strftime('%s', {$column->getFullIdentifier()}) AS {$column->getName()}";
                 break;
-            case 'SET':
+            case 'set':
                 return "{$column->getFullIdentifier()} + 0 AS {$column->getName()}";
                 break;
             default:
@@ -147,7 +147,7 @@ class SQLite extends Driver
                 $column
                     ->setName($columnInfo['name'])
                     ->setOrdinal($ordinal)
-                    ->setType($columnInfo['type'])
+                    ->setType(strtolower($columnInfo['type']))
                     ->setDefault($columnInfo['dflt_value'])
                     ->setAllowNull($columnInfo['notnull'] === '0')
                     ->setPrimaryKey($columnInfo['pk'] === '1')

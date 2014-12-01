@@ -42,7 +42,7 @@ CREATE TABLE Books (
     idAuthor INTEGER NOT NULL,
     isbn TEXT NOT NULL,
     description TEXT,
-    dateCreated TIMESTAMP,
+    dateCreated DATETIME NOT NULL DEFAULT GETDATE(),
     FOREIGN KEY(idAuthor) REFERENCES Authors(idAuthor)
 )
 SQL

@@ -398,7 +398,7 @@ LIMIT 0, 1' => [
 	`test`.`Books`.`idAuthor`,
 	`test`.`Books`.`isbn`,
 	`test`.`Books`.`description`,
-	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated AS dateCreated
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
 FROM
 	`test`.`Books`
 LIMIT 1, 1' => [

@@ -140,10 +140,10 @@ abstract class Driver
      * @param string $groupField
      * @return array[]
      */
-    public function fetchAll($sql, $params = array(), $indexField = null, $groupField = null)
+    public function fetchAll($sql, $params = [], $indexField = null, $groupField = null)
     {
         $stmt = $this->query($sql, $params);
-        $rows = array();
+        $rows = [];
         if ($stmt) {
             if ($groupField === null) {
                 if ($indexField === null) {
@@ -410,7 +410,7 @@ abstract class Driver
      */
     public function updateRecord($record)
     {
-        $params = array();
+        $params = [];
 
         // Build an update query for an existing record
         $update = '';
@@ -436,7 +436,7 @@ abstract class Driver
      */
     public function insertRecord($record)
     {
-        $params = array();
+        $params = [];
 
         // Build an insert query for a new record
         $fields = '';
@@ -473,7 +473,7 @@ abstract class Driver
      */
     public function deleteRecord($record)
     {
-        $params = array();
+        $params = [];
         $keyCriteria = $this->getRecordIdentifyingWhereClause($record, $params);
         return $this->executeUpdate("DELETE FROM {$record->getTable()->getFullIdentifier()} WHERE {$keyCriteria}", $params);
     }

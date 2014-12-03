@@ -74,11 +74,11 @@ SQL
 
     protected function getDriverParameters()
     {
-        return array(
+        return [
             'host' => $GLOBALS['mysql_hostname'],
             'port' => $GLOBALS['mysql_port'],
             'username' => $GLOBALS['mysql_username'],
             'password' => $GLOBALS['mysql_password']
-        );
+        ];
     }
 }

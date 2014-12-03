@@ -16,7 +16,7 @@
         <var name="mysql_username" value="root" />
         <var name="mysql_password" value="" />
 
-        <var name="sqlsrv_enabled" value="false" />
+        <var name="sqlsrv_enabled" value="true" />
         <var name="sqlsrv_host" value="localhost\SQLEXPRESS" />
         <var name="sqlsrv_username" value="" />
         <var name="sqlsrv_password" value="" />

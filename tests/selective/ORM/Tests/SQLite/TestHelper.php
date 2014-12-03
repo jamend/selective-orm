@@ -71,8 +71,8 @@ SQL
 
     protected function getDriverParameters()
     {
-        return array(
+        return [
             'file' => $GLOBALS['sqlite_file']
-        );
+        ];
     }
 }

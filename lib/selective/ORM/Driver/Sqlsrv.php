@@ -198,8 +198,8 @@ SQL;
     {
         // Cache the list of tables
         if (!isset($this->tableNames[$database->getName()])) {
-            $this->tableNames[$database->getName()] = array();
-            $tables = $this->fetchAll("SELECT name, object_id FROM sys.objects WHERE type IN ('U ', 'V ')", array(), 'object_id');
+            $this->tableNames[$database->getName()] = [];
+            $tables = $this->fetchAll("SELECT name, object_id FROM sys.objects WHERE type IN ('U ', 'V ')", [], 'object_id');
             $offset = strlen($database->getPrefix());
             foreach ($tables as $index => $row) {
                 $this->tableNames[$database->getName()][$index] = substr(current($row), $offset);
@@ -218,7 +218,7 @@ SQL;
      */
     public function buildTable(Database $database, $name)
     {
-        $objectInfo = $this->fetchAll("SELECT object_id FROM sys.objects WHERE type IN ('U ', 'V ') AND name = ?", array($name));
+        $objectInfo = $this->fetchAll("SELECT object_id FROM sys.objects WHERE type IN ('U ', 'V ') AND name = ?", [$name]);
         if (isset($objectInfo[0]['object_id'])) {
             $objectId = $objectInfo[0]['object_id'];
 
@@ -248,7 +248,7 @@ WHERE
 	columns.object_id = ?
 SQL
                 ,
-                array($objectId)
+                [$objectId]
             );
 
             $constraints = $this->fetchAll(<<<SQL
@@ -274,7 +274,7 @@ ORDER BY
 	foreign_keys.object_id
 SQL
                 ,
-                array($objectId),
+                [$objectId],
                 null,
                 'constraintName'
             );
@@ -332,8 +332,8 @@ SQL
             // enumerate relationships
             $offset = strlen($database->getPrefix());
             foreach ($constraints as $constraintName => $mappings) {
-                $localColumns = array();
-                $relatedColumns = array();
+                $localColumns = [];
+                $relatedColumns = [];
 
                 $mapping = null;
                 foreach ($mappings as $mapping) {
@@ -353,11 +353,11 @@ SQL
                     $table->relatedTables[$foreignTableName] = $constraintName;
                 }
 
-                $table->constraints[$constraintName] = array(
+                $table->constraints[$constraintName] = [
                     'localColumns' => $localColumns,
                     'relatedTable' => $foreignTableName,
                     'relatedColumns' => $relatedColumns
-                );
+                ];
             }
 
             return $table;

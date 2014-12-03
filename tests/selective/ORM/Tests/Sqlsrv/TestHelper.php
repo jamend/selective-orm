@@ -82,11 +82,11 @@ SQL
 
     protected function getDriverParameters()
     {
-        return array(
+        return [
             'host' => $GLOBALS['sqlsrv_host'],
             'username' => $GLOBALS['sqlsrv_username'],
             'password' => $GLOBALS['sqlsrv_password'],
             'schema' => $GLOBALS['sqlsrv_schema']
-        );
+        ];
     }
 }

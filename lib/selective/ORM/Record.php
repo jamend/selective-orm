@@ -9,9 +9,9 @@ namespace selective\ORM;
 class Record
 {
     // Keep internal state in _meta so that any instances look more like plain old objects
-    private $_meta = array(
-    	'foreignRecords' => array()
-    );
+    private $_meta = [
+    	'foreignRecords' => []
+    ];
 
     /**
      * Get a record in the given table.

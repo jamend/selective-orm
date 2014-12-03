@@ -115,8 +115,8 @@ class SQLite extends Driver
     {
         // Cache the list of tables
         if (!isset($this->tableNames[$database->getName()])) {
-            $this->tableNames[$database->getName()] = array();
-            $tables = $this->fetchAll("SELECT name FROM sqlite_master WHERE name LIKE ?", array("{$database->getPrefix()}%"));
+            $this->tableNames[$database->getName()] = [];
+            $tables = $this->fetchAll("SELECT name FROM sqlite_master WHERE name LIKE ?", ["{$database->getPrefix()}%"]);
             $offset = strlen($database->getPrefix());
             foreach ($tables as $row) {
                 $this->tableNames[$database->getName()][] = substr(current($row), $offset);
@@ -163,10 +163,10 @@ class SQLite extends Driver
 
             // enumerate relationships
             $offset = strlen($database->getPrefix());
-            $foreignKeys = $this->fetchAll("PRAGMA foreign_key_list(`{$database->getPrefix()}{$name}`)", array(), null, 'id');
+            $foreignKeys = $this->fetchAll("PRAGMA foreign_key_list(`{$database->getPrefix()}{$name}`)", [], null, 'id');
             foreach ($foreignKeys as $mappings) {
-                $localColumns = array();
-                $relatedColumns = array();
+                $localColumns = [];
+                $relatedColumns = [];
 
                 $constraintName = null;
                 $mapping = null;
@@ -188,11 +188,11 @@ class SQLite extends Driver
                     $table->relatedTables[$foreignTableName] = $constraintName;
                 }
 
-                $table->constraints[$constraintName] = array(
+                $table->constraints[$constraintName] = [
                     'localColumns' => $localColumns,
                     'relatedTable' => $foreignTableName,
                     'relatedColumns' => $relatedColumns
-                );
+                ];
             }
 
             return $table;

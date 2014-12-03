@@ -127,8 +127,8 @@ class MySQL extends Driver
     {
         // Cache the list of tables
         if (!isset($this->tableNames[$database->getName()])) {
-            $this->tableNames[$database->getName()] = array();
-            $tables = $this->fetchAll("SHOW TABLES FROM `{$database->getName()}` LIKE ?", array("{$database->getPrefix()}%"));
+            $this->tableNames[$database->getName()] = [];
+            $tables = $this->fetchAll("SHOW TABLES FROM `{$database->getName()}` LIKE ?", ["{$database->getPrefix()}%"]);
             $offset = strlen($database->getPrefix());
             foreach ($tables as $row) {
                 $this->tableNames[$database->getName()][] = substr(current($row), $offset);
@@ -152,12 +152,12 @@ class MySQL extends Driver
             throw new \Exception('Could not find table ' . $name);
         }
         $createTableSql = $createTableInfo[0]['Create Table'];
-        $columns = array();
-        $primaryKeys = array();
-        $constraints = array();
+        $columns = [];
+        $primaryKeys = [];
+        $constraints = [];
 
-        $lowerToRealCaseTableNames = array();
-        $actualTableNames = array();
+        $lowerToRealCaseTableNames = [];
+        $actualTableNames = [];
         foreach ($this->getTables($database) as $tableName) {
             $actualTableNames[$tableName] = true;
             $lowerToRealCaseTableNames[strtolower($tableName)] = $tableName;
@@ -195,7 +195,7 @@ class MySQL extends Driver
                 if ($column->getType() == 'set' || $column->getType() == 'enum') {
                     // we need to parse the SQL options
                     $optionsResult = $this->fetchAll('SELECT ' . $columnInfo['length']);
-                    $options = array();
+                    $options = [];
                     $i = 0;
                     foreach (current($optionsResult) as $option) {
                         $options[($column->getType() == 'set' ? pow(2, $i) : $i)] = $option;
@@ -243,11 +243,11 @@ class MySQL extends Driver
                     $table->relatedTables[$foreignTableName] = $constraint['name'];
                 }
 
-                $table->constraints[$constraint['name']] = array(
+                $table->constraints[$constraint['name']] = [
                     'localColumns' => $localColumns,
                     'relatedTable' => $foreignTableName,
                     'relatedColumns' => $relatedColumns
-                );
+                ];
             }
 
             return $table;

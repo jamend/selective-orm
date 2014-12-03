@@ -9,7 +9,7 @@ abstract class DatabaseTest extends \PHPUnit_Framework_TestCase
 
     public function testPreset()
     {
-        $prefixDb = new Database('test', '\selective\ORM\Tests\Mocks\Driver', array('prefix' => 'testprefix_'));
+        $prefixDb = new Database('test', '\selective\ORM\Tests\Mocks\Driver', ['prefix' => 'testprefix_']);
         $this->assertEquals(count($prefixDb->getTables()), 1);
         $this->assertFalse($prefixDb->hasTable('Books'));
         $this->assertTrue($prefixDb->hasTable('Test'));

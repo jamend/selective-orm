@@ -40,7 +40,7 @@ class Database
      * @param array $parameters Driver-specific parameters
      * @param array $classMapper Class mapper configuration (optional)
      */
-    public function __construct($name, $driver, $parameters, $classMapper = array())
+    public function __construct($name, $driver, $parameters, $classMapper = [])
     {
         $this->name = $name;
 

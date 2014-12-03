@@ -32,7 +32,7 @@ class TableTest extends \PHPUnit_Framework_TestCase
         $db = $this->getDB();
         $table = $db->{'Books'};
         $primaryKeys = $table->getPrimaryKeys();
-        $this->assertSame($primaryKeys, array('idBook'));
+        $this->assertSame($primaryKeys, ['idBook']);
     }
 
     public function testGetTableColumns()

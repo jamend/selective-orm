@@ -18,7 +18,7 @@ class Column
     private $allowNull = true;
     private $type;
     private $length;
-    private $options = array();
+    private $options = [];
 
     /**
      * @param Table $table

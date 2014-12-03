@@ -73,6 +73,11 @@ SQL
         if (empty($GLOBALS['sqlsrv_enabled'])) {
             $this->markTestSkipped('sqlsrv_* is not configured in phpunit.xml');
         }
+
+        if (!in_array('sqlsrv', \PDO::getAvailableDrivers(), true))
+        {
+            $this->markTestSkipped('sqlsrv_* is being skipped because sqlsrv PDO driver is not installed');
+        }
     }
 
     protected function getDriverClassName()

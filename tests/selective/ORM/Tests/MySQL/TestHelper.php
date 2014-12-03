@@ -22,7 +22,7 @@ trait TestHelper
         $db->getDriver()->executeUpdate(<<<SQL
 CREATE TABLE IF NOT EXISTS Authors (
   idAuthor INTEGER PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  name TEXT
+  name VARCHAR(100)
 )
 SQL
         );
@@ -30,9 +30,9 @@ SQL
         $db->getDriver()->executeUpdate(<<<SQL
 CREATE TABLE Books (
     idBook INTEGER PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    title TEXT NOT NULL,
+    title VARCHAR(200) NOT NULL,
     idAuthor INTEGER NOT NULL,
-    isbn TEXT NOT NULL,
+    isbn VARCHAR(50) NOT NULL,
     description TEXT,
     dateCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(idAuthor) REFERENCES Authors(idAuthor)

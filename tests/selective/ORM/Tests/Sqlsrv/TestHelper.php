@@ -30,7 +30,7 @@ trait TestHelper
         $db->getDriver()->executeUpdate(<<<SQL
 CREATE TABLE Authors (
   idAuthor INTEGER PRIMARY KEY NOT NULL IDENTITY(1,1),
-  name TEXT
+  name NVARCHAR(100)
 )
 SQL
         );
@@ -38,10 +38,10 @@ SQL
         $db->getDriver()->executeUpdate(<<<SQL
 CREATE TABLE Books (
     idBook INTEGER PRIMARY KEY NOT NULL IDENTITY(1,1),
-    title TEXT NOT NULL,
+    title NVARCHAR(200) NOT NULL,
     idAuthor INTEGER NOT NULL,
-    isbn TEXT NOT NULL,
-    description TEXT,
+    isbn NVARCHAR(50) NOT NULL,
+    description NVARCHAR(MAX),
     dateCreated DATETIME NOT NULL DEFAULT GETDATE(),
     FOREIGN KEY(idAuthor) REFERENCES Authors(idAuthor)
 )

@@ -71,24 +71,31 @@ class RecordTest extends \PHPUnit_Framework_TestCase
         $book->getRawPropertyValue('iDontExist');
     }
 
-    public function testSave()
+    public function testInsert()
     {
         $db = $this->getDB();
         $recordSet = $db->{'Books'};
 
-        // update
-        $id = 1;
-        $record = $recordSet->{$id};
-        $record->title = 'A New Title';
-        $this->assertTrue($record->save());
-
-        // insert
         $record = $recordSet->create();
         $record->title = 'Third time\'s the charm';
         $record->idAuthor = 1;
         $record->isbn = '12345-6791';
 
         $this->assertTrue($record->save());
+        $this->assertNotNull($record->getId());
+        $this->assertEquals(4, $record->getId());
+    }
+
+    public function testUpdate()
+    {
+        $db = $this->getDB();
+        $recordSet = $db->{'Books'};
+
+        $id = 1;
+        $record = $recordSet->{$id};
+        $record->title = 'A New Title';
+        $this->assertTrue($record->save());
+
         $this->assertNotNull($record->getId());
     }
 

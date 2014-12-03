@@ -89,6 +89,32 @@ class RecordSetTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testThenBy()
+    {
+        $db = $this->getDB();
+
+        $recordSet = $db->{'Books'}
+            ->orderBy('title', 'ASC')
+            ->thenBy('idBook', 'DESC');
+
+        $this->assertCount(3, $recordSet);
+        $i = 0;
+        foreach ($recordSet as $record) {
+            switch ($i) {
+                case 0:
+                    $this->assertEquals($record->getId(), 3);
+                    break;
+                case 1:
+                    $this->assertEquals($record->getId(), 1);
+                    break;
+                case 2:
+                    $this->assertEquals($record->getId(), 2);
+                    break;
+            }
+            $i++;
+        }
+    }
+
     public function testLimit()
     {
         $db = $this->getDB();

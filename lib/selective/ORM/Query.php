@@ -11,11 +11,23 @@ class Query
     const CARDINALITY_ONE_TO_MANY = 0;
     const CARDINALITY_MANY_TO_ONE = 1;
 
+    private $fields = [];
     private $rawSql = null;
     private $where = [];
     private $limit = null;
     private $orderBy = [];
     private $joins = [];
+
+    /**
+     * Add a select field
+     * @param string $alias
+     * @param string $alias
+     * @param array $params
+     */
+    public function addField($alias, $expression)
+    {
+        $this->field[] = [$criteria, $params];
+    }
 
     /**
      * Add a where condition
@@ -72,6 +84,15 @@ class Query
     public function addOrderBy($field, $direction = 'ASC')
     {
         $this->orderBy[] = [$field, $direction];
+    }
+
+    /**
+     * Set the order by fields and directions
+     * @param array[] $orderBy
+     */
+    public function setOrderBy($orderBy)
+    {
+        $this->orderBy = $orderBy;
     }
 
     /**

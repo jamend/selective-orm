@@ -380,6 +380,45 @@ ORDER BY
 	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
 FROM
 	`test`.`Books`
+ORDER BY
+	title ASC,
+	idBook DESC' => [
+                '' => [
+                    0 => [
+                        0 => '3',
+                        1 => 'My First Book',
+                        2 => '2',
+                        3 => '12345-6790',
+                        4 => 'It was OK',
+                        5 => time(),
+                    ],
+                    1 => [
+                        0 => '1',
+                        1 => 'My First Book',
+                        2 => '1',
+                        3 => '12345-6789',
+                        4 => 'It wasn\'t very good',
+                        5 => time(),
+                    ],
+                    2 => [
+                        0 => '2',
+                        1 => 'My Second Book',
+                        2 => '1',
+                        3 => '12345-6790',
+                        4 => 'It wasn\'t very good either',
+                        5 => time(),
+                    ],
+                ],
+            ],
+            'SELECT
+	`test`.`Books`.`idBook`,
+	`test`.`Books`.`title`,
+	`test`.`Books`.`idAuthor`,
+	`test`.`Books`.`isbn`,
+	`test`.`Books`.`description`,
+	UNIX_TIMESTAMP(`test`.`Books`.`dateCreated`) AS dateCreated
+FROM
+	`test`.`Books`
 LIMIT 0, 1' => [
                 '' => [
                     0 => [
@@ -421,7 +460,7 @@ LIMIT 1, 1' => [
         $this->params = $bound_input_params;
         $queryType = strtolower(substr($this->sql, 0, 6));
         if ($queryType === 'insert') {
-            $this->pdo->lastInsertId = 3; // fake book
+            $this->pdo->lastInsertId = 4; // fake book
         }
         switch (strtolower(substr($this->sql, 0, 6))) {
             case 'insert':

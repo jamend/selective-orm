@@ -111,12 +111,25 @@ abstract class RecordSet implements \Iterator
     }
 
     /**
-     * Return a new record set order by the given field and direction
+     * Return a new record set ordered only by the given field and direction
      * @param string $field
      * @param string $direction ASC or DESC
      * @return RecordSet
      */
     public function orderBy($field, $direction = 'ASC')
+    {
+        $recordSet = $this->openRecordSet();
+        $recordSet->query->setOrderBy([[$field, $direction]]);
+        return $recordSet;
+    }
+
+    /**
+     * Return a new record set additionally ordered by the given field and direction
+     * @param string $field
+     * @param string $direction ASC or DESC
+     * @return RecordSet
+     */
+    public function thenBy($field, $direction = 'ASC')
     {
         $recordSet = $this->openRecordSet();
         $recordSet->query->addOrderBy($field, $direction);
